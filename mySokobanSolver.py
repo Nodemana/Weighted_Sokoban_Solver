@@ -73,8 +73,82 @@ def taboo_cells(warehouse):
        The returned string should NOT have marks for the worker, the targets,
        and the boxes.  
     '''
-    ##         "INSERT YOUR CODE HERE"    
-    raise NotImplementedError()
+
+    ##         "INSERT YOUR CODE HERE"
+    '''
+    Compute reachable cells in (x, y) tuple set. 
+        A reachable cell falls within the outline of the outer most walls.
+        Get a string representation of the warehouse and replace all chars that are not the walls and targets.
+        Convert the warehouse into a list of lines by splitting over the line break \n.
+            Go through each line from left to right, once a wall is encountered, if the next space is not a wall, start adding the coords to the set.
+            Once a wall has been encountered again, and there are no more walls left on the line, then all the reachable squares for that line have been added.
+
+    Compute reachable corners from within reachable cells set. 
+        A corner has at least 1 wall above or below and at least one wall left or right.
+        These are taboo.
+
+    Consider all co-linear corners.
+        Co liniear corners will have one coordinate in common and one different.
+        A co linear corner pair will have a segment along/ adjacent to a wall between the corners.
+        Any square between a co linear corner pair that is not a target is taboo.
+    
+    Use the list of lines represenation to implement the replacements at the given coords for the taboo squares.
+    Convert back from list of lines to one string representation and return.
+    '''
+
+    # define char constants
+    target_chars = ['.', '!', '*']
+    removable_chars = ['$', '@']
+    wall_char = '#'
+    space_char = ' '
+    taboo_char = 'X'
+
+    # get string representation of warehouse
+    warehouse_string = warehouse.__str__()
+
+    # remove unessessary symbols
+    for char in removable_chars:
+        warehouse_string = warehouse_string.replace(char, " ")
+
+    # split string into array of lines
+    warehouse_lines = warehouse_string.split("\n")
+    
+    # each line in ware_house lines needs to be split into lists of individual chars
+    warehouse_array = []
+    for row in warehouse_lines:
+        temp = []
+        for char in row:
+            temp.append(char)
+        warehouse_array.append(temp)
+
+    # should be left with
+    # [
+    # [' ', '#', '#', '#'], 
+    # [line 2], 
+    # [line 3]
+    # ]
+
+    # so index 1 is the row number and index 2 in the column number
+
+    # iterate over 2d array and check between second to second last rows 
+    # and second to second last columns if the elements
+    # have wall chars either side of them in both directions.
+    # If they do, these are considered inside the warehouse
+
+    # we know the coords of the walls in self.walls
+    # index in 2d array maps correctly but reversed array[y][x]
+
+    reachable_corners = []
+
+    for y in warehouse_array:
+        for x in y:
+            pass
+            # here, check if the element is inside the warehouse and is a corner
+            # if the element is both of these things, add its coords to the reachable_corners list
+
+            # to check if its is reachable, look at wall coords
+            # if at least 1 wall exists either side of the element in the y and x direction, it is inside
+            
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
