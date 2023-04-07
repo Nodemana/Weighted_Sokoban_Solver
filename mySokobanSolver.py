@@ -30,6 +30,7 @@ Last modified by 2022-03-27  by f.maire@qut.edu.au
 # the files provided (search.py and sokoban.py) as your code will be tested 
 # with these files
 from itertools import combinations
+import numpy as np
 import search 
 import sokoban
 
@@ -179,7 +180,7 @@ class SokobanPuzzle(search.Problem):
     
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
-        self.start_node = warehouse.worker
+        self.start_state = warehouse
 
         #DEBUG
         print(warehouse.boxes)
@@ -190,23 +191,45 @@ class SokobanPuzzle(search.Problem):
         # To index the box start cords you would do this goal_nodes[0][0][0]
         # To index the weight you would do this goal_nodes[0][0][1]
         # Finally to index the target cords you would do this goal_nodes[0][1][0]
-        self.goal_nodes = []
+        self.goal_states = []
         i=0
         for c1 in warehouse.boxes:
             c1 = [c1, warehouse.weights[i]]
             for c2 in warehouse.targets:
-                self.goal_nodes.append([c1, c2])
+                self.goal_states.append([c1, c2])
             i += 1
 
         #DEBUG
-        print(self.goal_nodes)
+        print(self.goal_states)
 
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
         
         """
-        raise NotImplementedError
+        worker = state.worker
+        #if (up, down, left, right) in state.walls:
+        # Define the possible directions
+        directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right
+
+        # Initialize the result array with zeros
+        actions = [1, 1, 1, 1]
+
+        # Loop through each direction
+        for i, direction in enumerate(directions):
+            # Calculate the adjacent position based on the direction
+            adjacent_pos = [worker[0] + direction[0], worker[1] + direction[1]]
+            
+            #Cool Hip Adjacent Square Checker, felt cute might turn into function later.
+            if tuple(adjacent_pos) in state.walls: # Adjacent_pos made into tuple so in keyword can be used
+                # If so, set the corresponding element in the result array to 0
+                actions[i] = 0
+            elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
+                next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
+                if next_adjacent in (state.boxes or state.walls): #If adjacent square has box then check if next adjacent is a box or wall
+                    actions[i] = 0 #If next square a box or wall return 0
+        return actions
+
 
     def result(self, state, action):
         raise NotImplementedError
@@ -215,7 +238,7 @@ class SokobanPuzzle(search.Problem):
         raise NotImplementedError
     
     def goal_test(self, state):
-        if state in self.goal_nodes:
+        if state in self.goal_states:
             return 
         
     def path_cost(self, c, state1, action, state2):
@@ -285,9 +308,11 @@ def solve_weighted_sokoban(warehouse):
 from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
-    wh.load_warehouse("./warehouses/warehouse_09.txt")
+    wh.load_warehouse("./warehouses/warehouse_155.txt")
+    print(wh.walls)
     Puzzle = SokobanPuzzle(wh)
-    print(Puzzle.goal_nodes[0][0][1]) #How to index the weight of the box of one of the possible goal states
+    print(Puzzle.goal_states[0][0][1]) #How to index the weight of the box of one of the possible goal states
+    Puzzle.actions(wh)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
