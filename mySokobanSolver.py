@@ -29,6 +29,7 @@ Last modified by 2022-03-27  by f.maire@qut.edu.au
 # You have to make sure that your code works with 
 # the files provided (search.py and sokoban.py) as your code will be tested 
 # with these files
+from itertools import combinations
 import search 
 import sokoban
 
@@ -177,7 +178,28 @@ class SokobanPuzzle(search.Problem):
 
     
     def __init__(self, warehouse):
-        raise NotImplementedError()
+        #Do we need more information stored for the start_node?
+        self.start_node = warehouse.worker
+
+        #DEBUG
+        print(warehouse.boxes)
+        print(warehouse.targets)
+
+
+        # Generates all the possible combinations of a box on a target. Generates a tuple [[[(Box Start Cords), Weight], Target Cords]]
+        # To index the box start cords you would do this goal_nodes[0][0][0]
+        # To index the weight you would do this goal_nodes[0][0][1]
+        # Finally to index the target cords you would do this goal_nodes[0][1][0]
+        self.goal_nodes = []
+        i=0
+        for c1 in warehouse.boxes:
+            c1 = [c1, warehouse.weights[i]]
+            for c2 in warehouse.targets:
+                self.goal_nodes.append([c1, c2])
+            i += 1
+
+        #DEBUG
+        print(self.goal_nodes)
 
     def actions(self, state):
         """
@@ -186,6 +208,21 @@ class SokobanPuzzle(search.Problem):
         """
         raise NotImplementedError
 
+    def result(self, state, action):
+        raise NotImplementedError
+    
+    def print_solution(self, goal_node):
+        raise NotImplementedError
+    
+    def goal_test(self, state):
+        if state in self.goal_nodes:
+            return 
+        
+    def path_cost(self, c, state1, action, state2):
+        raise NotImplementedError
+    
+    def h(self, n):
+        raise NotImplementedError
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def check_elem_action_seq(warehouse, action_seq):
@@ -245,6 +282,12 @@ def solve_weighted_sokoban(warehouse):
     
     raise NotImplementedError()
 
+from sokoban import Warehouse
+if __name__ == "__main__":
+    wh = Warehouse()
+    wh.load_warehouse("./warehouses/warehouse_09.txt")
+    Puzzle = SokobanPuzzle(wh)
+    print(Puzzle.goal_nodes[0][0][1]) #How to index the weight of the box of one of the possible goal states
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
