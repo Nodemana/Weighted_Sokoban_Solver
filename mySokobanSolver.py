@@ -76,7 +76,6 @@ def taboo_cells(warehouse):
        and the boxes.  
     '''
 
-    ##         "INSERT YOUR CODE HERE"
     '''
     Compute reachable cells in (x, y) tuple set. 
         A reachable cell falls within the outline of the outer most walls.
@@ -142,15 +141,48 @@ def taboo_cells(warehouse):
 
     reachable_corners = []
 
-    for y in warehouse_array:
-        for x in y:
-            pass
+    for row in warehouse_array:
+        for square in row:
+            x_index = warehouse_array.index(row)
+            y_index = row.index(square)
             # here, check if the element is inside the warehouse and is a corner
             # if the element is both of these things, add its coords to the reachable_corners list
 
-            # to check if its is reachable, look at wall coords
+            # to check if its is reachable non wall element, look at wall coords
             # if at least 1 wall exists either side of the element in the y and x direction, it is inside
-            
+
+            # wall check
+            if square == wall_char:
+                continue
+            else:
+                # collect horizontally colinear walls from warehouse.walls
+                x_colin_wall_indices = []
+
+                # min and max
+                x_left_most_wall = min(x_colin_wall_indices)
+                x_right_most_wall = max(x_colin_wall_indices)
+
+                # collect vetcially colinear walls from warehouse.walls
+                y_colin_wall_indices = []
+
+                # min and max
+                y_upper_most_wall = min(y_colin_wall_indices)
+                y_lower_most_wall = max(y_colin_wall_indices)
+
+                # horizontal check
+                if (x_left_most_wall < x_index < x_right_most_wall):
+                    # the square has a wall either side of it
+
+                    # vertical check
+                    if (y_upper_most_wall < y_index < y_lower_most_wall):
+                        pass
+                    else:
+                        pass
+                    pass
+                else:
+                    # not inside, move on
+                    continue
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
