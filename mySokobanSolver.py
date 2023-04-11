@@ -244,6 +244,15 @@ def taboo_cells(warehouse):
                 else:
                     # it is not a corner, move to next square
                     continue
+    
+    # check each reachable corner to see if it has a colinear match in the set
+    # go right to left to make pairs horizontally and top to bottom to make pairs vertically
+    # a true pair will have nothing but space between them on the segment and any pair with no segment between should be considered
+    # once a pair is established
+    # check if the line between them, adjacent segment, exists on either side
+    # if the segment exists, all squares between the corners that are not targets are taboo
+    # add them to the taboo cells list and add the reachable corners that are not targets to the list as well
+    # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
 
     # condense array back into string
     # condense each line
@@ -424,7 +433,7 @@ if __name__ == "__main__":
     '''
 
     # CHAZ TESTS
-    wh.load_warehouse("./warehouses/warehouse_01.txt")
+    wh.load_warehouse("./warehouses/warehouse_205.txt")
     print(wh.walls)
     print(wh.__str__())
     print(taboo_cells(wh))
