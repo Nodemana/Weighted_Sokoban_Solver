@@ -49,6 +49,37 @@ def my_team():
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+def is_corner(walls, x, y):
+    '''
+    Return a boolean after checking if the given x,y coord is classified as a corner in the given warehouse.
+    A square is a corner if it has at least one wall adjacent to it vertically and at least one wall adjacent to it horizontally.
+    Exceptions are squares with walls on all sides.
+    
+    '''
+    x_adj = [(x-1, y), (x+1, y)]
+    y_adj = [(x, y+1), (x, y-1)]
+    # check the square in question
+    if any(coord in x_adj for coord in walls):
+        if any(coord in y_adj for coord in walls):
+            # is the square in question surrounded
+            if all(coord in x_adj+y_adj for coord in walls):
+                # square is surrounded and not a corner
+                print('Surrounded!')
+                return False
+            else:
+                # square is not surrounded and passes corner test
+                print('Its a corner!')
+                return True
+        else:
+            # not both
+            return False
+    else:
+        # not both
+        print('Did not pass corner test')
+        return False
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 def taboo_cells(warehouse):
     '''  
@@ -109,7 +140,7 @@ def taboo_cells(warehouse):
 
     # remove unessessary symbols
     for char in removable_chars:
-        warehouse_string = warehouse_string.replace(char, " ")
+        warehouse_string = warehouse_string.replace(char, space_char)
 
     # split string into array of lines
     warehouse_lines = warehouse_string.split("\n")
@@ -141,10 +172,14 @@ def taboo_cells(warehouse):
 
     reachable_corners = []
 
+    y_index = -1
     for row in warehouse_array:
+        y_index += 1
+        x_index = -1
+        print('\nLine ' + str(y_index))
         for square in row:
-            x_index = warehouse_array.index(row)
-            y_index = row.index(square)
+            print('Starting next square')
+            x_index += 1
             # here, check if the element is inside the warehouse and is a corner
             # if the element is both of these things, add its coords to the reachable_corners list
 
@@ -153,35 +188,74 @@ def taboo_cells(warehouse):
 
             # wall check
             if square == wall_char:
+                print('WALL ' + str(x_index) + ', ' + str(y_index))
+                print('REASON: Wall')
                 continue
             else:
-                # collect horizontally colinear walls from warehouse.walls
-                x_colin_wall_indices = []
+                print('SPACE ' + str(x_index) + ', ' + str(y_index))
+                # is the square a corner
+                if is_corner(warehouse.walls, x_index, y_index):
+                    # it is a corner square so we should check if its inside
+                    # if it is inside, it is a reachable corner
 
-                # min and max
-                x_left_most_wall = min(x_colin_wall_indices)
-                x_right_most_wall = max(x_colin_wall_indices)
+                    # collect horizontally colinear walls x indicies on same row
+                    x_colin_wall_indices = []
+                    for coord in warehouse.walls:
+                        if coord[1] == y_index:
+                            # the wall is on the same row
+                            # record its x position
+                            x_colin_wall_indices.append(coord[0])
+                    
+                    # min and max
+                    x_left_most_wall = min(x_colin_wall_indices)
+                    x_right_most_wall = max(x_colin_wall_indices)
 
-                # collect vetcially colinear walls from warehouse.walls
-                y_colin_wall_indices = []
+                    # horizontal check
+                    if (x_left_most_wall < x_index < x_right_most_wall):
+                        # the square has a wall either side of it
 
-                # min and max
-                y_upper_most_wall = min(y_colin_wall_indices)
-                y_lower_most_wall = max(y_colin_wall_indices)
+                        # collect vetcially colinear walls y indicies in same column
+                        y_colin_wall_indices = []
+                        for coord in warehouse.walls:
+                            if coord[0] == x_index:
+                                # the wall is on the same column
+                                # record its y position
+                                y_colin_wall_indices.append(coord[1])
 
-                # horizontal check
-                if (x_left_most_wall < x_index < x_right_most_wall):
-                    # the square has a wall either side of it
+                        # min and max
+                        y_upper_most_wall = min(y_colin_wall_indices)
+                        y_lower_most_wall = max(y_colin_wall_indices)
+                        # vertical check
+                        if (y_upper_most_wall < y_index < y_lower_most_wall):
+                            # the square is a corner, and is inside the warehouse
+                            # it is a reachable corner, add it to the list
+                            reachable_corners.append([x_index, y_index])
 
-                    # vertical check
-                    if (y_upper_most_wall < y_index < y_lower_most_wall):
-                        pass
+                            # TEST SHOW REACHABLE CORNERS
+                            warehouse_array[y_index][x_index] = taboo_char
+                        else:
+                            # it is a corner but not inside vertical range, move to next square
+                            print('REASON: Outside Vertical')
+                            continue
                     else:
-                        pass
-                    pass
+                        # it is a corner but not inside horizontal range, move to next square
+                        print('REASON: Outside Horizontal')
+                        continue
                 else:
-                    # not inside, move on
+                    # it is not a corner, move to next square
                     continue
+
+    # condense array back into string
+    # condense each line
+    warehouse_lines = []
+    for row in warehouse_array:
+        warehouse_lines.append(''.join(row))
+
+    # join each line to make one string
+    warehouse_string = '\n'.join(warehouse_lines)
+
+    # return string representation
+    return warehouse_string
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -340,11 +414,20 @@ def solve_weighted_sokoban(warehouse):
 from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
+
+    '''
     wh.load_warehouse("./warehouses/warehouse_155.txt")
     print(wh.walls)
     Puzzle = SokobanPuzzle(wh)
     print(Puzzle.goal_states[0][0][1]) #How to index the weight of the box of one of the possible goal states
     Puzzle.actions(wh)
+    '''
+
+    # CHAZ TESTS
+    wh.load_warehouse("./warehouses/warehouse_01.txt")
+    print(wh.walls)
+    print(wh.__str__())
+    print(taboo_cells(wh))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
