@@ -45,7 +45,6 @@ def my_team():
     
     '''
     return [ (11028840, 'Chaz', 'Tan'), (10778209, 'Zach', 'Edwards'), (11039639, 'Harrison', 'Leach') ]
-    raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -357,9 +356,40 @@ class SokobanPuzzle(search.Problem):
             return 
         
     def path_cost(self, c, state1, action, state2):
+        return c + 1 + state1.weights
         raise NotImplementedError
     
     def h(self, n):
+        target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
+        used_target = [] # This array will store targets with a box on them
+        satisfied_box = [] # This array will store boxes that have been placed on a target
+        # check through every box
+        for i, box_pos in enumerate(wh.boxes):
+            # check through every target for each box
+            for j, tar_pos in enumerate(wh.targets):
+                # find distance of box to target
+                if wh.weights[i] == 0:
+                    weight_dist = dist(box_pos, tar_pos)
+                else:
+                    weight_dist = dist(box_pos, tar_pos) * wh.weights[i]
+                # if a box is on a target, take note of both
+                if weight_dist == 0:
+                    satisfied_box.append(i)
+                    used_target.append(j)
+                target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
+
+        # will be used to find what value to return
+        h_candidates = []
+        for i in range(len(target_box_arr)):
+            # if a box is satisfied or a target is used, we no longer need to check for it
+            if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
+                pass
+            else:
+                h_candidates.append(target_box_arr[i])
+
+        # sorts by distWorkerBox + distBoxTarget*boxWeight
+        h_candidates.sort(key=lambda a: a[2])
+        return h_candidates[0][2]
         raise NotImplementedError
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -420,9 +450,14 @@ def solve_weighted_sokoban(warehouse):
     
     raise NotImplementedError()
 
+## Helper functions
+def dist(coor1, coor2):
+    return np.sqrt(((coor2[0] - coor1[0]) ** 2) +((coor2[1] - coor1[1]) ** 2))
+
 from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
+    
 
     '''
     wh.load_warehouse("./warehouses/warehouse_155.txt")
@@ -432,11 +467,48 @@ if __name__ == "__main__":
     Puzzle.actions(wh)
     '''
 
+    # Harry TESTS
+   
+    wh.load_warehouse("./warehouses/warehouse_01_a.txt")
+    
+    target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
+    used_target = [] # This array will store targets with a box on them
+    satisfied_box = [] # This array will store boxes that have been placed on a target
+    # check through every box
+    for i, box_pos in enumerate(wh.boxes):
+        # check through every target for each box
+        for j, tar_pos in enumerate(wh.targets):
+            # find distance of box to target
+            if wh.weights[i] == 0:
+                weight_dist = dist(box_pos, tar_pos)
+            else:
+                weight_dist = dist(box_pos, tar_pos) * wh.weights[i]
+            # if a box is on a target, take note of both
+            if weight_dist == 0:
+                satisfied_box.append(i)
+                used_target.append(j)
+            target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
+
+    # will be used to find what value to return
+    h_candidates = []
+    for i in range(len(target_box_arr)):
+        # if a box is satisfied or a target is used, we no longer need to check for it
+        if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
+            pass
+        else:
+            h_candidates.append(target_box_arr[i])
+
+    # sorts by distWorkerBox + distBoxTarget*boxWeight
+    h_candidates.sort(key=lambda a: a[2])
+    print(h_candidates[0][2])
+            
+
     # CHAZ TESTS
     wh.load_warehouse("./warehouses/warehouse_205.txt")
     print(wh.walls)
     print(wh.__str__())
     print(taboo_cells(wh))
+    print(wh.__str__())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
