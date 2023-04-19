@@ -31,6 +31,7 @@ Last modified by 2022-03-27  by f.maire@qut.edu.au
 # with these files
 from itertools import combinations
 import numpy as np
+import math
 import search 
 import sokoban
 
@@ -61,20 +62,17 @@ def is_corner(walls, x, y):
     if any(coord in x_adj for coord in walls):
         if any(coord in y_adj for coord in walls):
             # is the square in question surrounded
-            if all(coord in x_adj+y_adj for coord in walls):
+            if all(coord in walls for coord in x_adj) and all(coord in walls for coord in y_adj):
                 # square is surrounded and not a corner
-                print('Surrounded!')
                 return False
             else:
                 # square is not surrounded and passes corner test
-                print('Its a corner!')
                 return True
         else:
             # not both
             return False
     else:
         # not both
-        print('Did not pass corner test')
         return False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -175,9 +173,7 @@ def taboo_cells(warehouse):
     for row in warehouse_array:
         y_index += 1
         x_index = -1
-        print('\nLine ' + str(y_index))
         for square in row:
-            print('Starting next square')
             x_index += 1
             # here, check if the element is inside the warehouse and is a corner
             # if the element is both of these things, add its coords to the reachable_corners list
@@ -187,11 +183,8 @@ def taboo_cells(warehouse):
 
             # wall check
             if square == wall_char:
-                print('WALL ' + str(x_index) + ', ' + str(y_index))
-                print('REASON: Wall')
                 continue
             else:
-                print('SPACE ' + str(x_index) + ', ' + str(y_index))
                 # is the square a corner
                 if is_corner(warehouse.walls, x_index, y_index):
                     # it is a corner square so we should check if its inside
@@ -231,27 +224,95 @@ def taboo_cells(warehouse):
                             reachable_corners.append([x_index, y_index])
 
                             # TEST SHOW REACHABLE CORNERS
-                            warehouse_array[y_index][x_index] = taboo_char
+                            if warehouse_array[y_index][x_index] not in target_chars:
+                                warehouse_array[y_index][x_index] = taboo_char
                         else:
                             # it is a corner but not inside vertical range, move to next square
-                            print('REASON: Outside Vertical')
                             continue
                     else:
                         # it is a corner but not inside horizontal range, move to next square
-                        print('REASON: Outside Horizontal')
                         continue
                 else:
                     # it is not a corner, move to next square
                     continue
     
     # check each reachable corner to see if it has a colinear match in the set
-    # go right to left to make pairs horizontally and top to bottom to make pairs vertically
     # a true pair will have nothing but space between them on the segment and any pair with no segment between should be considered
     # once a pair is established
     # check if the line between them, adjacent segment, exists on either side
     # if the segment exists, all squares between the corners that are not targets are taboo
     # add them to the taboo cells list and add the reachable corners that are not targets to the list as well
     # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
+
+    sorted(reachable_corners , key=lambda k: [k[1], k[0]])
+    print("CORNERS:")
+    print(reachable_corners)
+
+    # vertically co linear check
+    corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
+    for corner in corner_set:
+        for possible_pair in corner_set:
+            distance_between = math.dist(corner, possible_pair)
+            if ((corner[0] == possible_pair[0]) and (distance_between>1)):
+                # this possible pair is co linear with the corner (y dimension) and has space between the points
+                # check if there is a wall segment adjacent to the segment between the points
+                segment = []
+                left_seg = []
+                right_seg = []
+
+                if corner[1]<possible_pair[1]:
+                    for delta in range(1, int(distance_between)):
+                        segment.append((corner[0], corner[1]+delta))
+                else:
+                    for delta in range(1, int(distance_between)):
+                        segment.append((possible_pair[0], possible_pair[1]+delta))
+
+                for seg_coord in segment:
+                    left_seg.append((seg_coord[0]-1, seg_coord[1]))
+
+                for seg_coord in segment:
+                    right_seg.append((seg_coord[0]+1, seg_coord[1]))
+            
+                if ((all(coord in warehouse.walls for coord in left_seg) or all(coord in warehouse.walls for coord in right_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
+                    if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
+                        for seg_coord in segment:
+                            warehouse_array[seg_coord[1]][seg_coord[0]] = taboo_char
+        corner_set.remove(corner)
+
+    # horizontal colinear check
+    corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
+    for corner in corner_set:
+        for possible_pair in corner_set:
+            distance_between = math.dist(corner, possible_pair)
+            print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
+            if ((corner[1] == possible_pair[1]) and (distance_between>1)):
+                # this possible pair is co linear with the corner (x dimension) and has space between the points
+                # check if there is a wall segment adjacent to the segment between the points
+                segment = []
+                top_seg = []
+                bottom_seg = []
+
+                if corner[0]<possible_pair[0]:
+                    for delta in range(1, int(distance_between)):
+                        segment.append((corner[0]+delta, corner[1]))
+                else:
+                    for delta in range(1, int(distance_between)):
+                        segment.append((possible_pair[0]+delta, possible_pair[1]))
+
+                for seg_coord in segment:
+                    top_seg.append((seg_coord[0], seg_coord[1]-1))
+
+                for seg_coord in segment:
+                    bottom_seg.append((seg_coord[0], seg_coord[1]+1))
+                
+                print(str(corner) + ' is co linear with ' + str(possible_pair))
+                print(segment)
+
+                if ((all(coord in warehouse.walls for coord in top_seg) or all(coord in warehouse.walls for coord in bottom_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
+                    if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
+                        for seg_coord in segment:
+                            warehouse_array[seg_coord[1]][seg_coord[0]] = taboo_char
+        corner_set.remove(corner)
 
     # condense array back into string
     # condense each line
@@ -261,6 +322,10 @@ def taboo_cells(warehouse):
 
     # join each line to make one string
     warehouse_string = '\n'.join(warehouse_lines)
+
+    # remove unessessary symbols
+    for char in target_chars:
+        warehouse_string = warehouse_string.replace(char, space_char)
 
     # return string representation
     return warehouse_string
@@ -504,10 +569,12 @@ if __name__ == "__main__":
             
 
     # CHAZ TESTS
-    wh.load_warehouse("./warehouses/warehouse_205.txt")
+    wh.load_warehouse("./warehouses/warehouse_125.txt")
     print(wh.walls)
     print(wh.__str__())
+    print("\n")
     print(taboo_cells(wh))
+    print("\n")
     print(wh.__str__())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
