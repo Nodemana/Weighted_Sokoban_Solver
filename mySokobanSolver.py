@@ -362,24 +362,29 @@ class SokobanPuzzle(search.Problem):
         self.start_state = warehouse
 
         #DEBUG
-        print(warehouse.boxes)
-        print(warehouse.targets)
-
+        #print(warehouse.boxes)
+        #print(warehouse.targets)
+        # Converts start state to goal state excluding worker.
+        warehouse_str = warehouse.__str__()
+        warehouse_str = warehouse_str.replace(".", "*")
+        warehouse_str = warehouse_str.replace("@", " ").replace("$", " ")
+        self.goal_state = warehouse_str
 
         # Generates all the possible combinations of a box on a target. Generates a tuple [[[(Box Start Cords), Weight], Target Cords]]
         # To index the box start cords you would do this goal_nodes[0][0][0]
         # To index the weight you would do this goal_nodes[0][0][1]
-        # Finally to index the target cords you would do this goal_nodes[0][1][0]
-        self.goal_states = []
-        i=0
-        for c1 in warehouse.boxes:
-            c1 = [c1, warehouse.weights[i]]
-            for c2 in warehouse.targets:
-                self.goal_states.append([c1, c2])
-            i += 1
+        # Finally to index the target cords you would do this goal_nodes[0][1][0] 
+    
+        #self.goal_states = []
+        #i=0
+        #for c1 in warehouse.boxes:
+        #    c1 = [c1, warehouse.weights[i]]
+        #    for c2 in warehouse.targets:
+        #        self.goal_states.append([c1, c2])
+        #    i += 1
 
         #DEBUG
-        print(self.goal_states)
+        #print(self.goal_state)
 
     def actions(self, state):
         """
@@ -389,7 +394,7 @@ class SokobanPuzzle(search.Problem):
         worker = state.worker
         #if (up, down, left, right) in state.walls:
         # Define the possible directions
-        directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right
+        directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # down, up left, right
 
         # Initialize the result array with zeros
         actions = [1, 1, 1, 1]
@@ -409,20 +414,19 @@ class SokobanPuzzle(search.Problem):
                     actions[i] = 0 #If next square a box or wall return 0
         return actions
 
-
+    # Creates a warehouse object of the resulting state after action. Will have to convert current warehouse to string, compute new state, covert back to warehouse object.
     def result(self, state, action):
         raise NotImplementedError
     
     def print_solution(self, goal_node):
-        raise NotImplementedError
-    
+        print(goal_node)
+
     def goal_test(self, state):
         if state in self.goal_states:
             return 
         
     def path_cost(self, c, state1, action, state2):
         return c + 1 + state1.weights
-        raise NotImplementedError
     
     def h(self, n):
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
@@ -569,13 +573,15 @@ if __name__ == "__main__":
             
 
     # CHAZ TESTS
-    wh.load_warehouse("./warehouses/warehouse_125.txt")
-    print(wh.walls)
-    print(wh.__str__())
-    print("\n")
-    print(taboo_cells(wh))
-    print("\n")
-    print(wh.__str__())
+    wh.load_warehouse("./warehouses/warehouse_155.txt")
+    Puzzle = SokobanPuzzle(wh)
+    #wh.load_warehouse("./warehouses/warehouse_125.txt")
+    #print(wh.walls)
+    #print(wh.__str__())
+    #print("\n")
+    #print(taboo_cells(wh))
+    #print("\n")
+    #print(wh.__str__())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
