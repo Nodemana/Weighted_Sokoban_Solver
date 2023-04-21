@@ -386,15 +386,18 @@ class SokobanPuzzle(search.Problem):
         #DEBUG
         #print(self.goal_state)
 
+    # Maybe actions should calculate the cost of the movement aswell so that the heuristic can use it?
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
+        Actions will be returned in the following format: [Up, Down, Left, Right] Where
+        the direction will be a 1 if its legal and 0 if not.
         
         """
         worker = state.worker
         #if (up, down, left, right) in state.walls:
         # Define the possible directions
-        directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # down, up left, right
+        directions = [ (0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right Note that up and down are backwards as the 0 in y is the top of the warehouse
 
         # Initialize the result array with zeros
         actions = [1, 1, 1, 1]
@@ -414,10 +417,16 @@ class SokobanPuzzle(search.Problem):
                     actions[i] = 0 #If next square a box or wall return 0
         return actions
 
-    # Creates a warehouse object of the resulting state after action. Will have to convert current warehouse to string, compute new state, covert back to warehouse object.
+    # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
     def result(self, state, action):
-        raise NotImplementedError
-    
+        new_warehouse = state
+        new_warehouse.worker = (state.worker[0] + action[0], state.worker[1] + action[1])
+
+        print(new_warehouse.worker)
+        if new_warehouse.worker in state.boxes:
+            new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] += action
+        return new_warehouse
+
     def print_solution(self, goal_node):
         print(goal_node)
 
@@ -575,6 +584,11 @@ if __name__ == "__main__":
     # CHAZ TESTS
     wh.load_warehouse("./warehouses/warehouse_155.txt")
     Puzzle = SokobanPuzzle(wh)
+    result = Puzzle.result(wh, (0,-1))
+    print(wh.worker)
+    print("New Warehouse")
+    print(result.__str__())
+    print(result.worker)
     #wh.load_warehouse("./warehouses/warehouse_125.txt")
     #print(wh.walls)
     #print(wh.__str__())
