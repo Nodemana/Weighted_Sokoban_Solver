@@ -447,14 +447,18 @@ class SokobanPuzzle(search.Problem):
     def print_solution(self, goal_node):
         print(goal_node)
 
-    def goal_test(self, state):
+    def goal_test(self, state_str):
         state_str = state_str.replace("@", " ")
-        if state == self.goal_state:
+        if state_str == self.goal_state:
             return True
         else:
             return False
         
-    def path_cost(self, c, state1, action, state2):
+    def path_cost(self, c, state1_str, action, state2_str):
+        state1 = Warehouse()
+        state1 = state1.from_string(state1_str)
+        state2 = Warehouse()
+        state2 = state1.from_string(state2_str)
         weight = 0
         for i, box_pre in enumerate(state1.boxes):
             if box_pre not in state2.boxes:
@@ -465,23 +469,25 @@ class SokobanPuzzle(search.Problem):
         return c + 1 + weight
     
     def h(self, n):
+        state = Warehouse()
+        state = state.from_string(n.state)
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
         used_target = [] # This array will store targets with a box on them
         satisfied_box = [] # This array will store boxes that have been placed on a target
         # check through every box
-        for i, box_pos in enumerate(n.state.boxes):
+        for i, box_pos in enumerate(state.boxes):
             # check through every target for each box
-            for j, tar_pos in enumerate(n.state.targets):
+            for j, tar_pos in enumerate(state.targets):
                 # find distance of box to target
-                if n.state.weights[i] == 0:
+                if state.weights[i] == 0:
                     weight_dist = dist(box_pos, tar_pos)
                 else:
-                    weight_dist = dist(box_pos, tar_pos) * n.state.weights[i]
+                    weight_dist = dist(box_pos, tar_pos) * state.weights[i]
                 # if a box is on a target, take note of both
                 if weight_dist == 0:
                     satisfied_box.append(i)
                     used_target.append(j)
-                target_box_arr.append((i, j, dist( n.state.worker, box_pos) + weight_dist))
+                target_box_arr.append((i, j, dist(state.worker, box_pos) + weight_dist))
 
         # will be used to find what value to return
         h_candidates = []
