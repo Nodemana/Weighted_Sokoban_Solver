@@ -431,8 +431,12 @@ class SokobanPuzzle(search.Problem):
         print(goal_node)
 
     def goal_test(self, state):
-        if state in self.goal_states:
-            return 
+        state_str = state.__str__()
+        state_str = state_str.replace("@", " ")
+        if state == self.goal_state:
+            return True
+        else:
+            return False
         
     def path_cost(self, c, state1, action, state2):
         return c + 1 + state1.weights
@@ -497,26 +501,26 @@ def check_elem_action_seq(warehouse, action_seq):
     for action in action_seq:
         match action:
             # Cases might have to be changed to format "Up" instead of (0,-1).
-            case (0,-1): # UP
+            case "Up": # UP
                 if warehouse.actions(warehouse)[0] == 0:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result(action)
-            case (0,1): # DOWN
+                    warehouse = warehouse.result((0,-1))
+            case "Down": # DOWN
                 if warehouse.actions(warehouse)[1] == 0:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result(action)
-            case (-1,0): # LEFT
+                    warehouse = warehouse.result((0,1))
+            case "Left": # LEFT
                 if warehouse.actions(warehouse)[2] == 0:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result(action)
-            case (1,0): # RIGHT
+                    warehouse = warehouse.result((-1,0))
+            case "Right": # RIGHT
                 if warehouse.actions(warehouse)[3] == 0:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result(action)
+                    warehouse = warehouse.result((1,0))
     
     return warehouse.__str__()
 
@@ -545,7 +549,7 @@ def solve_weighted_sokoban(warehouse):
             C is the total cost of the action sequence C
 
     '''
-    
+    search.astar_graph_search(SokobanPuzzle)
     raise NotImplementedError()
 
 ## Helper functions
