@@ -494,11 +494,30 @@ def check_elem_action_seq(warehouse, action_seq):
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
+    for action in action_seq:
+        match action:
+            case (0,-1): # UP
+                if warehouse.actions(warehouse)[0] == 0:
+                    return "Impossible"
+                else:
+                    warehouse = warehouse.result(action)
+            case (0,1): # DOWN
+                if warehouse.actions(warehouse)[1] == 0:
+                    return "Impossible"
+                else:
+                    warehouse = warehouse.result(action)
+            case (-1,0): # LEFT
+                if warehouse.actions(warehouse)[2] == 0:
+                    return "Impossible"
+                else:
+                    warehouse = warehouse.result(action)
+            case (1,0): # RIGHT
+                if warehouse.actions(warehouse)[3] == 0:
+                    return "Impossible"
+                else:
+                    warehouse = warehouse.result(action)
     
-    ##         "INSERT YOUR CODE HERE"
-    
-    raise NotImplementedError()
-
+    return warehouse.__str__()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
