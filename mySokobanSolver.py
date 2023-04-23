@@ -604,7 +604,7 @@ if __name__ == "__main__":
     wh = Warehouse()
     
     wh.load_warehouse("./warehouses/warehouse_01_a.txt")
-    solution = solve_weighted_sokoban(wh)
+    solution = solve_weighted_sokoban(wh.__str__())
     print(solution)
     
 
