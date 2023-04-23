@@ -386,13 +386,15 @@ class SokobanPuzzle(search.Problem):
         #print(self.goal_state)
 
     # Maybe actions should calculate the cost of the movement aswell so that the heuristic can use it?
-    def actions(self, state):
+    def actions(self, state_str):
         """
         Return the list of actions that can be executed in the given state.
         Actions will be returned in the following format: [Up, Down, Left, Right] Where
         the direction will be a 1 if its legal and 0 if not.
         
         """
+        state = Warehouse()
+        state = state.from_string(state_str)
         worker = state.worker
         #if (up, down, left, right) in state.walls:
         # Define the possible directions
@@ -424,11 +426,13 @@ class SokobanPuzzle(search.Problem):
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
-    def result(self, state, action):
+    def result(self, state_str, action):
+        state = Warehouse()
+        state = state.from_string(state_str)
         new_warehouse = state
-        #(state.worker)
-        new_warehouse.worker = (state.worker[0] + action[0], state.worker[1] + action[1])
-        #print(new_warehouse.worker)
+        print(state.worker)
+        new_warehouse.worker = (new_warehouse.worker[0] + action[0], new_warehouse.worker[1] + action[1])
+        print(new_warehouse.worker)
         print("Old")
         print(state.__str__())
         if new_warehouse.worker in state.boxes:
@@ -437,13 +441,13 @@ class SokobanPuzzle(search.Problem):
             print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
         print("New")
         print(new_warehouse.__str__())
-        return new_warehouse
+        new_warehouse_str = new_warehouse.__str__()
+        return new_warehouse_str
 
     def print_solution(self, goal_node):
         print(goal_node)
 
     def goal_test(self, state):
-        state_str = state.__str__()
         state_str = state_str.replace("@", " ")
         if state == self.goal_state:
             return True
@@ -465,19 +469,19 @@ class SokobanPuzzle(search.Problem):
         used_target = [] # This array will store targets with a box on them
         satisfied_box = [] # This array will store boxes that have been placed on a target
         # check through every box
-        for i, box_pos in enumerate(wh.boxes):
+        for i, box_pos in enumerate(n.state.boxes):
             # check through every target for each box
-            for j, tar_pos in enumerate(wh.targets):
+            for j, tar_pos in enumerate(n.state.targets):
                 # find distance of box to target
-                if wh.weights[i] == 0:
+                if n.state.weights[i] == 0:
                     weight_dist = dist(box_pos, tar_pos)
                 else:
-                    weight_dist = dist(box_pos, tar_pos) * wh.weights[i]
+                    weight_dist = dist(box_pos, tar_pos) * n.state.weights[i]
                 # if a box is on a target, take note of both
                 if weight_dist == 0:
                     satisfied_box.append(i)
                     used_target.append(j)
-                target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
+                target_box_arr.append((i, j, dist( n.state.worker, box_pos) + weight_dist))
 
         # will be used to find what value to return
         h_candidates = []
