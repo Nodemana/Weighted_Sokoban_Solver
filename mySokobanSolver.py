@@ -496,6 +496,7 @@ def check_elem_action_seq(warehouse, action_seq):
     '''
     for action in action_seq:
         match action:
+            # Cases might have to be changed to format "Up" instead of (0,-1).
             case (0,-1): # UP
                 if warehouse.actions(warehouse)[0] == 0:
                     return "Impossible"
