@@ -29,7 +29,6 @@ Last modified by 2022-03-27  by f.maire@qut.edu.au
 # You have to make sure that your code works with 
 # the files provided (search.py and sokoban.py) as your code will be tested 
 # with these files
-from itertools import combinations
 import numpy as np
 import math
 import search 
@@ -413,18 +412,31 @@ class SokobanPuzzle(search.Problem):
                 actions.remove(direction)
             elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
-                if next_adjacent in (state.boxes or state.walls): #If adjacent square has box then check if next adjacent is a box or wall
+                #print("Adjacent")
+                #print(next_adjacent)
+                #print("Action")
+                #print(direction)
+                if next_adjacent in state.boxes or next_adjacent in state.walls: #If adjacent square has box then check if next adjacent is a box or wall
+                    #print("I did my job")
                     actions.remove(direction) #If next square a box or wall return 0
+
+        print(actions)
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
     def result(self, state, action):
         new_warehouse = state
+        #(state.worker)
         new_warehouse.worker = (state.worker[0] + action[0], state.worker[1] + action[1])
-
+        #print(new_warehouse.worker)
+        print("Old")
+        print(state.__str__())
         if new_warehouse.worker in state.boxes:
+            print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
             new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
-             
+            print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
+        print("New")
+        print(new_warehouse.__str__())
         return new_warehouse
 
     def print_solution(self, goal_node):
@@ -443,7 +455,9 @@ class SokobanPuzzle(search.Problem):
         for i, box_pre in enumerate(state1.boxes):
             if box_pre not in state2.boxes:
                 weight = state1.weights[i]
-        print(c + 1 + weight)
+        #print(action)
+        #print(c + 1 + weight)
+        #print(state1.__str__())
         return c + 1 + weight
     
     def h(self, n):

@@ -251,6 +251,8 @@ class Node:
         Fig. 3.10 of AIMA textbook
         Create and return a child node corresponding to 'action'
         """
+        print("Child Action")
+        print(action)
         next_state = problem.result(self.state, action)
         return Node(next_state, # next_state is a state
                     self, # parent is a node
@@ -405,10 +407,13 @@ def best_first_graph_search(problem, f):
     explored = set() # set of states
     while frontier:
         node = frontier.pop()
+        #print(node.state.__str__())
         if problem.goal_test(node.state):
             return node
         explored.add(node.state)
         for child in node.expand(problem):
+            #print("Children")
+            #print(child.state.__str__())
             if child.state not in explored and child not in frontier:
                 frontier.append(child)
             elif child in frontier:
