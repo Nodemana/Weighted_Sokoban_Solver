@@ -359,7 +359,7 @@ class SokobanPuzzle(search.Problem):
     
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
-        self.start_state = warehouse
+        self.initial = warehouse
 
         #DEBUG
         #print(warehouse.boxes)
@@ -500,7 +500,6 @@ def check_elem_action_seq(warehouse, action_seq):
     '''
     for action in action_seq:
         match action:
-            # Cases might have to be changed to format "Up" instead of (0,-1).
             case "Up": # UP
                 if warehouse.actions(warehouse)[0] == 0:
                     return "Impossible"
@@ -549,8 +548,24 @@ def solve_weighted_sokoban(warehouse):
             C is the total cost of the action sequence C
 
     '''
-    search.astar_graph_search(SokobanPuzzle)
-    raise NotImplementedError()
+    problem = SokobanPuzzle(warehouse)
+    final_node = search.astar_graph_search(problem)
+    C = final_node.path_cost
+    S = []
+    actions = final_node.solution()
+    for action in actions:
+        match action:
+            case (0,-1): # UP
+                S.append("Up")
+            case (0,1): # DOWN
+                S.append("Down")
+            case (-1,0): # LEFT
+                S.append("Left")
+            case (1,0): # RIGHT
+                S.append("Right")
+    S = S.reverse()
+    return [S, C]
+    
 
 ## Helper functions
 def dist(coor1, coor2):
