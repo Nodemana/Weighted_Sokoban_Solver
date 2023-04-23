@@ -400,7 +400,7 @@ class SokobanPuzzle(search.Problem):
         directions = [ (0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right Note that up and down are backwards as the 0 in y is the top of the warehouse
 
         # Initialize the result array with zeros
-        actions = [1, 1, 1, 1]
+        actions = [(0, -1), (0, 1), (-1, 0), (1, 0)]
 
         # Loop through each direction
         for i, direction in enumerate(directions):
@@ -410,11 +410,11 @@ class SokobanPuzzle(search.Problem):
             #Cool Hip Adjacent Square Checker, felt cute might turn into function later.
             if tuple(adjacent_pos) in state.walls: # Adjacent_pos made into tuple so in keyword can be used
                 # If so, set the corresponding element in the result array to 0
-                actions[i] = 0
+                actions.remove(direction)
             elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
                 if next_adjacent in (state.boxes or state.walls): #If adjacent square has box then check if next adjacent is a box or wall
-                    actions[i] = 0 #If next square a box or wall return 0
+                    actions.remove(direction) #If next square a box or wall return 0
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
@@ -422,9 +422,9 @@ class SokobanPuzzle(search.Problem):
         new_warehouse = state
         new_warehouse.worker = (state.worker[0] + action[0], state.worker[1] + action[1])
 
-        print(new_warehouse.worker)
         if new_warehouse.worker in state.boxes:
-            new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] += action
+            new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
+             
         return new_warehouse
 
     def print_solution(self, goal_node):
@@ -439,7 +439,12 @@ class SokobanPuzzle(search.Problem):
             return False
         
     def path_cost(self, c, state1, action, state2):
-        return c + 1 + state1.weights
+        weight = 0
+        for i, box_pre in enumerate(state1.boxes):
+            if box_pre not in state2.boxes:
+                weight = state1.weights[i]
+        print(c + 1 + weight)
+        return c + 1 + weight
     
     def h(self, n):
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
@@ -472,7 +477,6 @@ class SokobanPuzzle(search.Problem):
         # sorts by distWorkerBox + distBoxTarget*boxWeight
         h_candidates.sort(key=lambda a: a[2])
         return h_candidates[0][2]
-        raise NotImplementedError
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def check_elem_action_seq(warehouse, action_seq):
@@ -575,6 +579,10 @@ from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
+    wh.load_warehouse("./warehouses/warehouse_01_a.txt")
+    solution = solve_weighted_sokoban(wh)
+    print(solution)
+    
 
     '''
     wh.load_warehouse("./warehouses/warehouse_155.txt")
@@ -586,48 +594,48 @@ if __name__ == "__main__":
 
     # Harry TESTS
    
-    wh.load_warehouse("./warehouses/warehouse_01_a.txt")
-    
-    target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
-    used_target = [] # This array will store targets with a box on them
-    satisfied_box = [] # This array will store boxes that have been placed on a target
-    # check through every box
-    for i, box_pos in enumerate(wh.boxes):
-        # check through every target for each box
-        for j, tar_pos in enumerate(wh.targets):
-            # find distance of box to target
-            if wh.weights[i] == 0:
-                weight_dist = dist(box_pos, tar_pos)
-            else:
-                weight_dist = dist(box_pos, tar_pos) * wh.weights[i]
-            # if a box is on a target, take note of both
-            if weight_dist == 0:
-                satisfied_box.append(i)
-                used_target.append(j)
-            target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
-
-    # will be used to find what value to return
-    h_candidates = []
-    for i in range(len(target_box_arr)):
-        # if a box is satisfied or a target is used, we no longer need to check for it
-        if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
-            pass
-        else:
-            h_candidates.append(target_box_arr[i])
-
-    # sorts by distWorkerBox + distBoxTarget*boxWeight
-    h_candidates.sort(key=lambda a: a[2])
-    print(h_candidates[0][2])
+    #wh.load_warehouse("./warehouses/warehouse_01_a.txt")
+    #
+    #target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
+    #used_target = [] # This array will store targets with a box on them
+    #satisfied_box = [] # This array will store boxes that have been placed on a target
+    ## check through every box
+    #for i, box_pos in enumerate(wh.boxes):
+    #    # check through every target for each box
+    #    for j, tar_pos in enumerate(wh.targets):
+    #        # find distance of box to target
+    #        if wh.weights[i] == 0:
+    #            weight_dist = dist(box_pos, tar_pos)
+    #        else:
+    #            weight_dist = dist(box_pos, tar_pos) * wh.weights[i]
+    #        # if a box is on a target, take note of both
+    #        if weight_dist == 0:
+    #            satisfied_box.append(i)
+    #            used_target.append(j)
+    #        target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
+#
+    ## will be used to find what value to return
+    #h_candidates = []
+    #for i in range(len(target_box_arr)):
+    #    # if a box is satisfied or a target is used, we no longer need to check for it
+    #    if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
+    #        pass
+    #    else:
+    #        h_candidates.append(target_box_arr[i])
+#
+    ## sorts by distWorkerBox + distBoxTarget*boxWeight
+    #h_candidates.sort(key=lambda a: a[2])
+    #print(h_candidates[0][2])
             
 
     # CHAZ TESTS
-    wh.load_warehouse("./warehouses/warehouse_155.txt")
-    Puzzle = SokobanPuzzle(wh)
-    result = Puzzle.result(wh, (0,-1))
-    print(wh.worker)
-    print("New Warehouse")
-    print(result.__str__())
-    print(result.worker)
+    # wh.load_warehouse("./warehouses/warehouse_155.txt")
+    # Puzzle = SokobanPuzzle(wh)
+    # result = Puzzle.result(wh, (0,-1))
+    # print(wh.worker)
+    # print("New Warehouse")
+    # print(result.__str__())
+    # print(result.worker)
     #wh.load_warehouse("./warehouses/warehouse_125.txt")
     #print(wh.walls)
     #print(wh.__str__())
