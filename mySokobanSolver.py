@@ -359,7 +359,7 @@ class SokobanPuzzle(search.Problem):
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
         self.initial = warehouse.__str__()
-
+        self.taboo_str = taboo_cells(warehouse)
         #DEBUG
         #print(warehouse.boxes)
         #print(warehouse.targets)
@@ -414,15 +414,9 @@ class SokobanPuzzle(search.Problem):
                 actions.remove(direction)
             elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
-                #print("Adjacent")
-                #print(next_adjacent)
-                #print("Action")
-                #print(direction)
                 if next_adjacent in state.boxes or next_adjacent in state.walls: #If adjacent square has box then check if next adjacent is a box or wall
-                    #print("I did my job")
                     actions.remove(direction) #If next square a box or wall return 0
-
-        #print(actions)
+                #Chazz put it here man
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
@@ -534,24 +528,25 @@ def check_elem_action_seq(warehouse, action_seq):
                string returned by the method  Warehouse.__str__()
     '''
     for action in action_seq:
+        legal_actions = warehouse.actions(warehouse)
         match action:
             case "Up": # UP
-                if warehouse.actions(warehouse)[0] == 0:
+                if legal_actions[0] == 0:
                     return "Impossible"
                 else:
                     warehouse = warehouse.result((0,-1))
             case "Down": # DOWN
-                if warehouse.actions(warehouse)[1] == 0:
+                if legal_actions[1] == 0:
                     return "Impossible"
                 else:
                     warehouse = warehouse.result((0,1))
             case "Left": # LEFT
-                if warehouse.actions(warehouse)[2] == 0:
+                if legal_actions[2] == 0:
                     return "Impossible"
                 else:
                     warehouse = warehouse.result((-1,0))
             case "Right": # RIGHT
-                if warehouse.actions(warehouse)[3] == 0:
+                if legal_actions[3] == 0:
                     return "Impossible"
                 else:
                     warehouse = warehouse.result((1,0))
@@ -589,7 +584,6 @@ def solve_weighted_sokoban(warehouse):
     s = []
     actions = final_node.solution()
     for action in actions:
-        #print(action)
         match action:
             case (0,-1): # UP
                 s.append("Up")
@@ -601,7 +595,6 @@ def solve_weighted_sokoban(warehouse):
                 s.append("Right")
             case _:
                 print("Move failed")
-    #s.reverse()
     return [s, c]
     
 
