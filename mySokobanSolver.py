@@ -358,7 +358,7 @@ class SokobanPuzzle(search.Problem):
     
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
-        self.initial = warehouse
+        self.initial = warehouse.__str__()
 
         #DEBUG
         #print(warehouse.boxes)
@@ -469,8 +469,10 @@ class SokobanPuzzle(search.Problem):
         return c + 1 + weight
     
     def h(self, n):
+        print(n.state)
         state = Warehouse()
         state = state.from_string(n.state)
+        print(state.__str__())
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
         used_target = [] # This array will store targets with a box on them
         satisfied_box = [] # This array will store boxes that have been placed on a target
