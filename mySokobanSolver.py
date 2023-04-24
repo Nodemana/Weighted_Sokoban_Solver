@@ -438,7 +438,7 @@ class SokobanPuzzle(search.Problem):
         if new_warehouse.worker in state.boxes:
             print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
             new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
-            print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
+            #print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
         print("New")
         print(new_warehouse.__str__())
         new_warehouse_str = new_warehouse.__str__()
@@ -450,8 +450,10 @@ class SokobanPuzzle(search.Problem):
     def goal_test(self, state_str):
         state_str = state_str.replace("@", " ")
         if state_str == self.goal_state:
+            print("True")
             return True
         else:
+            print("False")
             return False
         
     def path_cost(self, c, state1_str, action, state2_str):
@@ -469,10 +471,10 @@ class SokobanPuzzle(search.Problem):
         return c + 1 + weight
     
     def h(self, n):
-        print(n.state)
+        #print(n.state)
         state = Warehouse()
         state.from_string(n.state)
-        print(state.__str__())
+        #print(state.__str__())
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
         used_target = [] # This array will store targets with a box on them
         satisfied_box = [] # This array will store boxes that have been placed on a target
@@ -502,7 +504,10 @@ class SokobanPuzzle(search.Problem):
 
         # sorts by distWorkerBox + distBoxTarget*boxWeight
         h_candidates.sort(key=lambda a: a[2])
-        return h_candidates[0][2]
+        if h_candidates == []:
+            return 0
+        else:
+            return h_candidates[0][2]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def check_elem_action_seq(warehouse, action_seq):
@@ -584,6 +589,7 @@ def solve_weighted_sokoban(warehouse):
     S = []
     actions = final_node.solution()
     for action in actions:
+        print(action)
         match action:
             case (0,-1): # UP
                 S.append("Up")
@@ -593,6 +599,8 @@ def solve_weighted_sokoban(warehouse):
                 S.append("Left")
             case (1,0): # RIGHT
                 S.append("Right")
+            case _:
+                print("Move failed")
     S = S.reverse()
     return [S, C]
     
