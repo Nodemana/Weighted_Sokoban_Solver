@@ -394,7 +394,7 @@ class SokobanPuzzle(search.Problem):
         
         """
         state = Warehouse()
-        state = state.from_string(state_str)
+        state.from_string(state_str)
         worker = state.worker
         #if (up, down, left, right) in state.walls:
         # Define the possible directions
@@ -428,7 +428,7 @@ class SokobanPuzzle(search.Problem):
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
     def result(self, state_str, action):
         state = Warehouse()
-        state = state.from_string(state_str)
+        state.from_string(state_str)
         new_warehouse = state
         print(state.worker)
         new_warehouse.worker = (new_warehouse.worker[0] + action[0], new_warehouse.worker[1] + action[1])
@@ -456,9 +456,9 @@ class SokobanPuzzle(search.Problem):
         
     def path_cost(self, c, state1_str, action, state2_str):
         state1 = Warehouse()
-        state1 = state1.from_string(state1_str)
+        state1.from_string(state1_str)
         state2 = Warehouse()
-        state2 = state1.from_string(state2_str)
+        state2.from_string(state2_str)
         weight = 0
         for i, box_pre in enumerate(state1.boxes):
             if box_pre not in state2.boxes:
@@ -471,7 +471,7 @@ class SokobanPuzzle(search.Problem):
     def h(self, n):
         print(n.state)
         state = Warehouse()
-        state = state.from_string(n.state)
+        state.from_string(n.state)
         print(state.__str__())
         target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
         used_target = [] # This array will store targets with a box on them
