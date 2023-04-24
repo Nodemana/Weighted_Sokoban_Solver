@@ -527,29 +527,30 @@ def check_elem_action_seq(warehouse, action_seq):
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
+    problem = SokobanPuzzle(warehouse)
     for action in action_seq:
-        legal_actions = warehouse.actions(warehouse)
+        legal_actions = problem.actions(warehouse.__str__())
         match action:
             case "Up": # UP
-                if legal_actions[0] == 0:
+                if (0,-1) in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result((0,-1))
+                    warehouse = problem.result((0,-1))
             case "Down": # DOWN
-                if legal_actions[1] == 0:
+                if (0,1) in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result((0,1))
+                    warehouse = problem.result((0,1))
             case "Left": # LEFT
-                if legal_actions[2] == 0:
+                if (-1,0) in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result((-1,0))
+                    warehouse = problem.result((-1,0))
             case "Right": # RIGHT
-                if legal_actions[3] == 0:
+                if (1,0) in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = warehouse.result((1,0))
+                    warehouse = problem.result((1,0))
     
     return warehouse.__str__()
 
