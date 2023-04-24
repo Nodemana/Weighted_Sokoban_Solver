@@ -245,8 +245,8 @@ def taboo_cells(warehouse):
     # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
 
     sorted(reachable_corners , key=lambda k: [k[1], k[0]])
-    print("CORNERS:")
-    print(reachable_corners)
+    #print("CORNERS:")
+    #print(reachable_corners)
 
     # vertically co linear check
     corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
@@ -284,7 +284,7 @@ def taboo_cells(warehouse):
     for corner in corner_set:
         for possible_pair in corner_set:
             distance_between = math.dist(corner, possible_pair)
-            print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
+            #print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
             if ((corner[1] == possible_pair[1]) and (distance_between>1)):
                 # this possible pair is co linear with the corner (x dimension) and has space between the points
                 # check if there is a wall segment adjacent to the segment between the points
@@ -305,8 +305,8 @@ def taboo_cells(warehouse):
                 for seg_coord in segment:
                     bottom_seg.append((seg_coord[0], seg_coord[1]+1))
                 
-                print(str(corner) + ' is co linear with ' + str(possible_pair))
-                print(segment)
+                #print(str(corner) + ' is co linear with ' + str(possible_pair))
+                #print(segment)
 
                 if ((all(coord in warehouse.walls for coord in top_seg) or all(coord in warehouse.walls for coord in bottom_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
                     if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
@@ -487,27 +487,27 @@ class SokobanPuzzle(search.Problem):
                     satisfied_box.append(i)
                     used_target.append(j)
                 target_box_arr.append((i, j, dist(state.worker, box_pos) + weight_dist))
-
+        #print(target_box_arr)
+        print(target_box_arr)
         configs = []
         number_of_configs = len(target_box_arr)
         for i in range(number_of_configs):
-            # print(i)
+            #print(i)
             # print(target_box_arr[i])
             for j in range(i+1,number_of_configs):
                 # if the box or the target are the same do not bother checking
                 if target_box_arr[i][0] != target_box_arr[j][0] and target_box_arr[i][1] != target_box_arr[j][1]:
                     configs.append(((target_box_arr[i]),(target_box_arr[j]),target_box_arr[i][2]+target_box_arr[j][2]))
         #large number
-        best_config = float('inf')
+        best_config = [0,0,float('inf')]
         #check for the configuration with the least distance of all configuraitons
         for config in configs:
-            if config[2] < best_config:
-                best_config = config[2]
+            if config[2] < best_config[2]:
+                best_config = config
         target_box_arr = []
-        for x in configs:
-            if x[2] == best_config:
-                target_box_arr.append(x[0])
-                target_box_arr.append(x[1])
+        target_box_arr.append(best_config[0])
+        target_box_arr.append(best_config[1])
+        print(target_box_arr)
 
         # will be used to find what value to return
         h_candidates = []
@@ -523,6 +523,9 @@ class SokobanPuzzle(search.Problem):
         if h_candidates == []:
             return 0
         else:
+            print(h_candidates)
+            print(h_candidates[0][2])
+            #return
             return h_candidates[0][2]
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -635,17 +638,6 @@ if __name__ == "__main__":
     t1 = time.time()
     print (f'\nAnalysis took {t1-t0:.6f} seconds\n')
     print(solution)
-    
-
-    '''
-    wh.load_warehouse("./warehouses/warehouse_155.txt")
-    print(wh.walls)
-    Puzzle = SokobanPuzzle(wh)
-    print(Puzzle.goal_states[0][0][1]) #How to index the weight of the box of one of the possible goal states
-    Puzzle.actions(wh)
-    '''
-
-    # Harry TESTS
    
     # wh.load_warehouse("./warehouses/warehouse_8a.txt")
     # print(wh.__str__())
