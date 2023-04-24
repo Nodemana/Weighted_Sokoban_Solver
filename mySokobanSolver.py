@@ -422,7 +422,7 @@ class SokobanPuzzle(search.Problem):
                     #print("I did my job")
                     actions.remove(direction) #If next square a box or wall return 0
 
-        print(actions)
+        #print(actions)
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
@@ -430,11 +430,11 @@ class SokobanPuzzle(search.Problem):
         state = Warehouse()
         state.from_string(state_str)
         new_warehouse = state
-        print(state.worker)
+        #print(state.worker)
         new_warehouse.worker = (new_warehouse.worker[0] + action[0], new_warehouse.worker[1] + action[1])
-        print(new_warehouse.worker)
-        print("Old")
-        print(state.__str__())
+        #print(new_warehouse.worker)
+        #print("Old")
+        #print(state.__str__())
         if new_warehouse.worker in state.boxes:
             print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
             new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
@@ -585,24 +585,24 @@ def solve_weighted_sokoban(warehouse):
     '''
     problem = SokobanPuzzle(warehouse)
     final_node = search.astar_graph_search(problem)
-    C = final_node.path_cost
-    S = []
+    c = final_node.path_cost
+    s = []
     actions = final_node.solution()
     for action in actions:
         print(action)
         match action:
             case (0,-1): # UP
-                S.append("Up")
+                s.append("Up")
             case (0,1): # DOWN
-                S.append("Down")
+                s.append("Down")
             case (-1,0): # LEFT
-                S.append("Left")
+                s.append("Left")
             case (1,0): # RIGHT
-                S.append("Right")
+                s.append("Right")
             case _:
                 print("Move failed")
-    S = S.reverse()
-    return [S, C]
+    s.reverse()
+    return [s, c]
     
 
 ## Helper functions
