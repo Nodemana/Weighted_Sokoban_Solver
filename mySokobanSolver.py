@@ -32,6 +32,7 @@ Last modified by 2022-03-27  by f.maire@qut.edu.au
 import numpy as np
 import math
 import search 
+import time
 import sokoban
 
 
@@ -487,6 +488,27 @@ class SokobanPuzzle(search.Problem):
                     used_target.append(j)
                 target_box_arr.append((i, j, dist(state.worker, box_pos) + weight_dist))
 
+        configs = []
+        number_of_configs = len(target_box_arr)
+        for i in range(number_of_configs):
+            # print(i)
+            # print(target_box_arr[i])
+            for j in range(i+1,number_of_configs):
+                # if the box or the target are the same do not bother checking
+                if target_box_arr[i][0] != target_box_arr[j][0] and target_box_arr[i][1] != target_box_arr[j][1]:
+                    configs.append(((target_box_arr[i]),(target_box_arr[j]),target_box_arr[i][2]+target_box_arr[j][2]))
+        #large number
+        best_config = float('inf')
+        #check for the configuration with the least distance of all configuraitons
+        for config in configs:
+            if config[2] < best_config:
+                best_config = config[2]
+        target_box_arr = []
+        for x in configs:
+            if x[2] == best_config:
+                target_box_arr.append(x[0])
+                target_box_arr.append(x[1])
+
         # will be used to find what value to return
         h_candidates = []
         for i in range(len(target_box_arr)):
@@ -607,8 +629,11 @@ from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
-    wh.load_warehouse("./warehouses/warehouse_169.txt")
-    solution = solve_weighted_sokoban(wh.__str__())
+    wh.load_warehouse("./warehouses/warehouse_8a.txt")
+    t0 = time.time()
+    solution = solve_weighted_sokoban(wh)
+    t1 = time.time()
+    print (f'\nAnalysis took {t1-t0:.6f} seconds\n')
     print(solution)
     
 
@@ -622,13 +647,14 @@ if __name__ == "__main__":
 
     # Harry TESTS
    
-    #wh.load_warehouse("./warehouses/warehouse_01_a.txt")
-    #
-    #target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
-    #used_target = [] # This array will store targets with a box on them
-    #satisfied_box = [] # This array will store boxes that have been placed on a target
-    ## check through every box
-    #for i, box_pos in enumerate(wh.boxes):
+    # wh.load_warehouse("./warehouses/warehouse_8a.txt")
+    # print(wh.__str__())
+    
+    # target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
+    # used_target = [] # This array will store targets with a box on them
+    # satisfied_box = [] # This array will store boxes that have been placed on a target
+    # # check through every box
+    # for i, box_pos in enumerate(wh.boxes):
     #    # check through every target for each box
     #    for j, tar_pos in enumerate(wh.targets):
     #        # find distance of box to target
@@ -641,19 +667,41 @@ if __name__ == "__main__":
     #            satisfied_box.append(i)
     #            used_target.append(j)
     #        target_box_arr.append((i, j, dist(wh.worker, box_pos) + weight_dist))
-#
-    ## will be used to find what value to return
-    #h_candidates = []
-    #for i in range(len(target_box_arr)):
+
+    # configs = []
+    # number_of_configs = len(target_box_arr)
+    # for i in range(number_of_configs):
+    #     # print(i)
+    #     # print(target_box_arr[i])
+    #     for j in range(i+1,number_of_configs):
+    #         # if the box or the target are the same do not bother checking
+    #         if target_box_arr[i][0] != target_box_arr[j][0] and target_box_arr[i][1] != target_box_arr[j][1]:
+    #             configs.append(((target_box_arr[i]),(target_box_arr[j]),target_box_arr[i][2]+target_box_arr[j][2]))
+
+    # #large number
+    # best_config = float('inf')
+    # #check for the configuration with the least distance of all configuraitons
+    # for config in configs:
+    #     if config[2] < best_config:
+    #         best_config = config[2]
+    # target_box_arr = []
+    # for x in configs:
+    #     if x[2] == best_config:
+    #         target_box_arr.append(x[0])
+    #         target_box_arr.append(x[1])
+
+    # # will be used to find what value to return
+    # h_candidates = []
+    # for i in range(len(target_box_arr)):
     #    # if a box is satisfied or a target is used, we no longer need to check for it
     #    if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
     #        pass
     #    else:
     #        h_candidates.append(target_box_arr[i])
-#
-    ## sorts by distWorkerBox + distBoxTarget*boxWeight
-    #h_candidates.sort(key=lambda a: a[2])
-    #print(h_candidates[0][2])
+
+    # # sorts by distWorkerBox + distBoxTarget*boxWeight
+    # h_candidates.sort(key=lambda a: a[2])
+    # print(h_candidates[0][2])
             
 
     # CHAZ TESTS
