@@ -436,11 +436,11 @@ class SokobanPuzzle(search.Problem):
         #print("Old")
         #print(state.__str__())
         if new_warehouse.worker in state.boxes:
-            print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
+            #print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
             new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
             #print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
-        print("New")
-        print(new_warehouse.__str__())
+        #print("New")
+        #print(new_warehouse.__str__())
         new_warehouse_str = new_warehouse.__str__()
         return new_warehouse_str
 
@@ -450,10 +450,10 @@ class SokobanPuzzle(search.Problem):
     def goal_test(self, state_str):
         state_str = state_str.replace("@", " ")
         if state_str == self.goal_state:
-            print("True")
+            #print("True")
             return True
         else:
-            print("False")
+            #print("False")
             return False
         
     def path_cost(self, c, state1_str, action, state2_str):
@@ -589,7 +589,7 @@ def solve_weighted_sokoban(warehouse):
     s = []
     actions = final_node.solution()
     for action in actions:
-        print(action)
+        #print(action)
         match action:
             case (0,-1): # UP
                 s.append("Up")
@@ -601,7 +601,7 @@ def solve_weighted_sokoban(warehouse):
                 s.append("Right")
             case _:
                 print("Move failed")
-    s.reverse()
+    #s.reverse()
     return [s, c]
     
 
@@ -613,7 +613,7 @@ from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
-    wh.load_warehouse("./warehouses/warehouse_01_a.txt")
+    wh.load_warehouse("./warehouses/warehouse_169.txt")
     solution = solve_weighted_sokoban(wh.__str__())
     print(solution)
     
