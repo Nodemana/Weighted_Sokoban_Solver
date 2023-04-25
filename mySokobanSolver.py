@@ -360,7 +360,15 @@ class SokobanPuzzle(search.Problem):
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
         self.initial = warehouse.__str__()
+        # get the taboo string represenation of the warehouse
         self.taboo_str = taboo_cells(warehouse)
+        self.taboo_coords = []
+        # turn the taboo string representation into a list of taboo coordinate tuples
+        lines = self.taboo_str.split(sep='\n')
+        generator = sokoban.find_2D_iterator(lines, "X")
+        for coord in generator:
+            self.taboo_coords.append(coord)
+        
         #DEBUG
         #print(warehouse.boxes)
         #print(warehouse.targets)
@@ -385,6 +393,14 @@ class SokobanPuzzle(search.Problem):
 
         #DEBUG
         #print(self.goal_state)
+    
+    def taboo_check(coordinates):
+        """
+        A function that returns a bool value depending on if the given coordinates are a taboo square.
+        The function takes a given set of coordinates as a parameter and checks them against the warehouse's
+        taboo string of taboo cells.
+        """
+        #
 
     # Maybe actions should calculate the cost of the movement aswell so that the heuristic can use it?
     def actions(self, state_str):
@@ -415,9 +431,8 @@ class SokobanPuzzle(search.Problem):
                 actions.remove(direction)
             elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
-                if next_adjacent in state.boxes or next_adjacent in state.walls: #If adjacent square has box then check if next adjacent is a box or wall
+                if (next_adjacent in state.boxes) or (next_adjacent in state.walls) or (next_adjacent in self.taboo_coords): #If adjacent square has box then check if next adjacent is a box or wall or a taboo cell
                     actions.remove(direction) #If next square a box or wall return 0
-                #Chazz put it here man
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
@@ -632,7 +647,7 @@ from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
-    wh.load_warehouse("./warehouses/warehouse_8a.txt")
+    wh.load_warehouse("./warehouses/warehouse_01.txt")
     t0 = time.time()
     solution = solve_weighted_sokoban(wh)
     t1 = time.time()
