@@ -245,8 +245,8 @@ def taboo_cells(warehouse):
     # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
 
     sorted(reachable_corners , key=lambda k: [k[1], k[0]])
-    #print("CORNERS:")
-    #print(reachable_corners)
+    print("CORNERS:")
+    print(reachable_corners)
 
     # vertically co linear check
     corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
@@ -284,7 +284,7 @@ def taboo_cells(warehouse):
     for corner in corner_set:
         for possible_pair in corner_set:
             distance_between = math.dist(corner, possible_pair)
-            #print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
+            print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
             if ((corner[1] == possible_pair[1]) and (distance_between>1)):
                 # this possible pair is co linear with the corner (x dimension) and has space between the points
                 # check if there is a wall segment adjacent to the segment between the points
@@ -305,8 +305,8 @@ def taboo_cells(warehouse):
                 for seg_coord in segment:
                     bottom_seg.append((seg_coord[0], seg_coord[1]+1))
                 
-                #print(str(corner) + ' is co linear with ' + str(possible_pair))
-                #print(segment)
+                print(str(corner) + ' is co linear with ' + str(possible_pair))
+                print(segment)
 
                 if ((all(coord in warehouse.walls for coord in top_seg) or all(coord in warehouse.walls for coord in bottom_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
                     if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
@@ -359,8 +359,8 @@ class SokobanPuzzle(search.Problem):
     
     def __init__(self, warehouse):
         #Do we need more information stored for the start_node?
-        self.initial = warehouse.__str__()
-        # get the taboo string represenation of the warehouse
+        self.initial = (warehouse.worker, tuple(warehouse.boxes), tuple(warehouse.weights))
+         # get the taboo string represenation of the warehouse
         self.taboo_str = taboo_cells(warehouse)
         self.taboo_coords = []
         # turn the taboo string representation into a list of taboo coordinate tuples
@@ -369,6 +369,8 @@ class SokobanPuzzle(search.Problem):
         for coord in generator:
             self.taboo_coords.append(coord)
         
+        self.static = warehouse.copy()
+        # self.state_test = [warehouse.worker, warehouse.boxes, warehouse.weights]
         #DEBUG
         #print(warehouse.boxes)
         #print(warehouse.targets)
@@ -393,26 +395,16 @@ class SokobanPuzzle(search.Problem):
 
         #DEBUG
         #print(self.goal_state)
-    
-    def taboo_check(coordinates):
-        """
-        A function that returns a bool value depending on if the given coordinates are a taboo square.
-        The function takes a given set of coordinates as a parameter and checks them against the warehouse's
-        taboo string of taboo cells.
-        """
-        #
 
     # Maybe actions should calculate the cost of the movement aswell so that the heuristic can use it?
-    def actions(self, state_str):
+    def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
         Actions will be returned in the following format: [Up, Down, Left, Right] Where
         the direction will be a 1 if its legal and 0 if not.
         
         """
-        state = Warehouse()
-        state.from_string(state_str)
-        worker = state.worker
+        worker = state[0]
         #if (up, down, left, right) in state.walls:
         # Define the possible directions
         directions = [ (0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right Note that up and down are backwards as the 0 in y is the top of the warehouse
@@ -426,39 +418,31 @@ class SokobanPuzzle(search.Problem):
             adjacent_pos = [worker[0] + direction[0], worker[1] + direction[1]]
             
             #Cool Hip Adjacent Square Checker, felt cute might turn into function later.
-            if tuple(adjacent_pos) in state.walls: # Adjacent_pos made into tuple so in keyword can be used
+            if tuple(adjacent_pos) in self.static.walls: # Adjacent_pos made into tuple so in keyword can be used
                 # If so, set the corresponding element in the result array to 0
                 actions.remove(direction)
-            elif tuple(adjacent_pos) in state.boxes: #Checks if adjacent square has a box
+            elif tuple(adjacent_pos) in state[1]: #Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
-                if (next_adjacent in state.boxes) or (next_adjacent in state.walls) or (next_adjacent in self.taboo_coords): #If adjacent square has box then check if next adjacent is a box or wall or a taboo cell
+                if (next_adjacent in state[1]) or (next_adjacent in self.static.walls) or (next_adjacent in self.taboo_coords): #If adjacent square has box then check if next adjacent is a box or wall or a taboo cell: #If adjacent square has box then check if next adjacent is a box or wall
                     actions.remove(direction) #If next square a box or wall return 0
         return actions
 
     # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
-    def result(self, state_str, action):
-        state = Warehouse()
-        state.from_string(state_str)
-        new_warehouse = state
-        #print(state.worker)
-        new_warehouse.worker = (new_warehouse.worker[0] + action[0], new_warehouse.worker[1] + action[1])
-        #print(new_warehouse.worker)
-        #print("Old")
-        #print(state.__str__())
-        if new_warehouse.worker in state.boxes:
-            #print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
-            new_warehouse.boxes[state.boxes.index(new_warehouse.worker)] = tuple([new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][0] + action[0], new_warehouse.boxes[state.boxes.index(new_warehouse.worker)][1] + action[1]])
-            #print(new_warehouse.boxes[state.boxes.index(new_warehouse.worker)])
-        #print("New")
-        #print(new_warehouse.__str__())
-        new_warehouse_str = new_warehouse.__str__()
-        return new_warehouse_str
+    def result(self, state, action):
+        next_state = self.static.copy(state[0], list(state[1]), list(state[2]))
+        next_state.worker = (next_state.worker[0] + action[0], next_state.worker[1] + action[1])
+        if next_state.worker in state[1]:
+            idx = state[1].index(next_state.worker)
+            next_state.boxes[idx] = tuple([next_state.boxes[idx][0] + action[0], next_state.boxes[idx][1] + action[1]])
+        next_state = self.static.copy(next_state.worker, tuple(next_state.boxes), tuple(next_state.weights))
+        return (next_state.worker, tuple(next_state.boxes), tuple(next_state.weights))
 
     def print_solution(self, goal_node):
         print(goal_node)
 
-    def goal_test(self, state_str):
-        state_str = state_str.replace("@", " ")
+    def goal_test(self, state):
+        state_str = self.static.copy(state[0],state[1],state[2]).__str__().replace("@", " ")
+        # state_str = state_str.replace("@", " ")
         if state_str == self.goal_state:
             #print("True")
             return True
@@ -466,82 +450,39 @@ class SokobanPuzzle(search.Problem):
             #print("False")
             return False
         
-    def path_cost(self, c, state1_str, action, state2_str):
-        state1 = Warehouse()
-        state1.from_string(state1_str)
-        state2 = Warehouse()
-        state2.from_string(state2_str)
+    def path_cost(self, c, state1, action, state2):
         weight = 0
-        for i, box_pre in enumerate(state1.boxes):
-            if box_pre not in state2.boxes:
-                weight = state1.weights[i]
-        #print(action)
-        #print(c + 1 + weight)
-        #print(state1.__str__())
+        for i, box_pre in enumerate(state1[1]):
+            if box_pre not in state2[1]:
+                weight = state1[2][i]
         return c + 1 + weight
     
     def h(self, n):
-        #print(n.state)
-        state = Warehouse()
-        state.from_string(n.state)
-        #print(state.__str__())
-        target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
-        used_target = [] # This array will store targets with a box on them
-        satisfied_box = [] # This array will store boxes that have been placed on a target
-        # check through every box
-        for i, box_pos in enumerate(state.boxes):
-            # check through every target for each box
-            for j, tar_pos in enumerate(state.targets):
-                # find distance of box to target
-                if state.weights[i] == 0:
-                    weight_dist = dist(box_pos, tar_pos)
-                else:
-                    weight_dist = dist(box_pos, tar_pos) * state.weights[i]
-                # if a box is on a target, take note of both
-                if weight_dist == 0:
-                    satisfied_box.append(i)
-                    used_target.append(j)
-                target_box_arr.append((i, j, dist(state.worker, box_pos) + weight_dist))
-        #print(target_box_arr)
-        print(target_box_arr)
-        configs = []
-        number_of_configs = len(target_box_arr)
-        for i in range(number_of_configs):
-            #print(i)
-            # print(target_box_arr[i])
-            for j in range(i+1,number_of_configs):
-                # if the box or the target are the same do not bother checking
-                if target_box_arr[i][0] != target_box_arr[j][0] and target_box_arr[i][1] != target_box_arr[j][1]:
-                    configs.append(((target_box_arr[i]),(target_box_arr[j]),target_box_arr[i][2]+target_box_arr[j][2]))
-        #large number
-        best_config = [0,0,float('inf')]
-        #check for the configuration with the least distance of all configuraitons
-        for config in configs:
-            if config[2] < best_config[2]:
-                best_config = config
-        target_box_arr = []
-        target_box_arr.append(best_config[0])
-        target_box_arr.append(best_config[1])
-        print(target_box_arr)
-
-        # will be used to find what value to return
-        h_candidates = []
-        for i in range(len(target_box_arr)):
-            # if a box is satisfied or a target is used, we no longer need to check for it
-            if target_box_arr[i][0] in satisfied_box or target_box_arr[i][1] in used_target:
-                pass
+        min_player_to_box_dist = float('inf')
+        # Calculate the weighted distance from the player to the nearest box
+        for box_pos, box_weight in zip(n.state[1], n.state[2]):
+            if box_weight == 0:
+                player_to_box_dist = dist(n.state[0], box_pos)
             else:
-                h_candidates.append(target_box_arr[i])
+                player_to_box_dist = dist(n.state[0], box_pos) * box_weight
+            if player_to_box_dist < min_player_to_box_dist:
+                min_player_to_box_dist = player_to_box_dist
 
-        # sorts by distWorkerBox + distBoxTarget*boxWeight
-        h_candidates.sort(key=lambda a: a[2])
-        if h_candidates == []:
-            return 0
-        else:
-            print(h_candidates)
-            print(h_candidates[0][2])
-            #return
-            return h_candidates[0][2]
+        # Calculate the weighted distance from each box to the nearest target
+        box_to_target_dists = []
+        for box_pos, box_weight in zip(n.state[1], n.state[2]):
+            min_box_to_target_dist = float('inf')
+            for target_pos in self.static.targets:
+                if box_weight == 0:
+                    box_to_target_dist = dist(box_pos, target_pos)
+                else:
+                    box_to_target_dist = dist(box_pos, target_pos) * box_weight
+                if box_to_target_dist < min_box_to_target_dist:
+                    min_box_to_target_dist = box_to_target_dist
+            box_to_target_dists.append(min_box_to_target_dist)
+
+        # Return the sum of the weighted distances
+        return min_player_to_box_dist + sum(box_to_target_dists)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def check_elem_action_seq(warehouse, action_seq):
@@ -569,7 +510,7 @@ def check_elem_action_seq(warehouse, action_seq):
     '''
     problem = SokobanPuzzle(warehouse)
     for action in action_seq:
-        legal_actions = problem.actions(warehouse.__str__())
+        legal_actions = problem.actions(problem.initial)
         match action:
             case "Up": # UP
                 if (0,-1) in legal_actions:
@@ -641,21 +582,58 @@ def solve_weighted_sokoban(warehouse):
 
 ## Helper functions
 def dist(coor1, coor2):
-    return np.sqrt(((coor2[0] - coor1[0]) ** 2) +((coor2[1] - coor1[1]) ** 2))
+    # return abs(coor2[0] - coor1[0])  + (coor2[1] - coor1[1]) # Manhattan
+    return np.sqrt(((coor2[0] - coor1[0]) ** 2) +((coor2[1] - coor1[1]) ** 2)) # Euclidean
 
 from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
-    wh.load_warehouse("./warehouses/warehouse_01.txt")
+    wh.load_warehouse("./warehouses/warehouse_8a.txt")
     t0 = time.time()
     solution = solve_weighted_sokoban(wh)
     t1 = time.time()
     print (f'\nAnalysis took {t1-t0:.6f} seconds\n')
     print(solution)
+    
+
+    '''
+    wh.load_warehouse("./warehouses/warehouse_155.txt")
+    print(wh.walls)
+    Puzzle = SokobanPuzzle(wh)
+    print(Puzzle.goal_states[0][0][1]) #How to index the weight of the box of one of the possible goal states
+    Puzzle.actions(wh)
+    '''
+
+    # Harry TESTS
    
     # wh.load_warehouse("./warehouses/warehouse_8a.txt")
     # print(wh.__str__())
+    # min_player_to_box_dist = float('inf')
+    # # Calculate the weighted distance from the player to the nearest box
+    # for box_pos, box_weight in zip(wh.boxes, wh.weights):
+    #     if box_weight == 0:
+    #         player_to_box_dist = dist(wh.worker, box_pos)
+    #     else:
+    #         player_to_box_dist = dist(wh.worker, box_pos) * box_weight
+    #     if player_to_box_dist < min_player_to_box_dist:
+    #         min_player_to_box_dist = player_to_box_dist
+    
+    # # Calculate the weighted distance from each box to the nearest target
+    # box_to_target_dists = []
+    # for box_pos, box_weight in zip(wh.boxes, wh.weights):
+    #     min_box_to_target_dist = float('inf')
+    #     for target_pos in wh.targets:
+    #         if box_weight == 0:
+    #             box_to_target_dist = dist(box_pos, target_pos)
+    #         else:
+    #             box_to_target_dist = dist(box_pos, target_pos) * box_weight
+    #         if box_to_target_dist < min_box_to_target_dist:
+    #             min_box_to_target_dist = box_to_target_dist
+    #     box_to_target_dists.append(min_box_to_target_dist)
+    
+    # # Return the sum of the weighted distances
+    # print(min_player_to_box_dist + sum(box_to_target_dists))
     
     # target_box_arr =[] # This array will store (box, target, distWorkerBox + distBoxTarget*boxWeight)
     # used_target = [] # This array will store targets with a box on them
