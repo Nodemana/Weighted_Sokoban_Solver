@@ -564,7 +564,7 @@ def solve_weighted_sokoban(warehouse):
     problem = SokobanPuzzle(warehouse)
     final_node = search.astar_graph_search(problem)
     if final_node == None:
-        return "Impossible"
+        return "Impossible", 0
     c = final_node.path_cost
     s = []
     actions = final_node.solution()

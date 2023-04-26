@@ -282,7 +282,7 @@ def solve_puzzle():
     solution, total_cost = solve_weighted_sokoban(warehouse)
     t1 = time.time()
     print (f'\nAnalysis took {t1-t0:.6f} seconds\n')
-    if solution == 'impossible':
+    if solution == 'Impossible':
         print('\nNo solution found!\n')
     else:
         print(f"\nSolution found with a cost of {total_cost} \n", solution, '\n')
