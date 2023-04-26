@@ -563,6 +563,8 @@ def solve_weighted_sokoban(warehouse):
     '''
     problem = SokobanPuzzle(warehouse)
     final_node = search.astar_graph_search(problem)
+    if final_node == None:
+        return "Impossible"
     c = final_node.path_cost
     s = []
     actions = final_node.solution()
@@ -578,6 +580,7 @@ def solve_weighted_sokoban(warehouse):
                 s.append("Right")
             case _:
                 print("Move failed")
+    check_elem_action_seq(s, problem.static)
     return [s, c]
     
 
@@ -590,7 +593,7 @@ from sokoban import Warehouse
 if __name__ == "__main__":
     wh = Warehouse()
     
-    wh.load_warehouse("./warehouses/warehouse_8a.txt")
+    wh.load_warehouse("./warehouses/warehouse_5n.txt")
     t0 = time.time()
     solution = solve_weighted_sokoban(wh)
     t1 = time.time()
