@@ -345,20 +345,19 @@ class SokobanPuzzle(search.Problem):
     
     '''
     
-    #
-    #         "INSERT YOUR CODE HERE"
-    #
-    #     Revisit the sliding puzzle and the pancake puzzle for inspiration!
-    #
-    #     Note that you will need to add several functions to 
-    #     complete this class. For example, a 'result' method is needed
-    #     to satisfy the interface of 'search.Problem'.
-    #
-    #     You are allowed (and encouraged) to use auxiliary functions and classes
-
-    
     def __init__(self, warehouse):
-        #Do we need more information stored for the start_node?
+        """
+        Initialises a new SokobanPuzzle class instance.
+
+        @params:
+            warehouse: A valid warehouse object.
+        @attributes:
+            - initial: An initial state tuple consisting of the worker, boxes and weights.
+            - taboo_str: A string of the taboo cells in the warehouse.
+            - taboo_coords: An array of all the coordinates of the taboo cells.
+            - static: A warehouse object of the initial warehouse.
+            - goal_state: A string of the goal state of the warehouse.
+        """
         self.initial = (warehouse.worker, tuple(warehouse.boxes), tuple(warehouse.weights))
          # get the taboo string represenation of the warehouse
         self.taboo_str = taboo_cells(warehouse)
@@ -380,80 +379,94 @@ class SokobanPuzzle(search.Problem):
         warehouse_str = warehouse_str.replace("@", " ").replace("$", " ")
         self.goal_state = warehouse_str
 
-        # Generates all the possible combinations of a box on a target. Generates a tuple [[[(Box Start Cords), Weight], Target Cords]]
-        # To index the box start cords you would do this goal_nodes[0][0][0]
-        # To index the weight you would do this goal_nodes[0][0][1]
-        # Finally to index the target cords you would do this goal_nodes[0][1][0] 
-    
-        #self.goal_states = []
-        #i=0
-        #for c1 in warehouse.boxes:
-        #    c1 = [c1, warehouse.weights[i]]
-        #    for c2 in warehouse.targets:
-        #        self.goal_states.append([c1, c2])
-        #    i += 1
-
         #DEBUG
         #print(self.goal_state)
 
     # Maybe actions should calculate the cost of the movement aswell so that the heuristic can use it?
     def actions(self, state):
         """
-        Return the list of actions that can be executed in the given state.
-        Actions will be returned in the following format: [Up, Down, Left, Right] Where
-        the direction will be a 1 if its legal and 0 if not.
-        
+        Takes in a tuple representing the worker and boxes positions along with their weights.
+        Returns the list of legal actions that can be executed in the given state.
+        Legal actions will be returned in the following format: [(x,y), (x2,y2), (x3,y3), (x4,y4)]
+        @params
+            state: A tuple representing the position of the worker, boxes and their weights.
+        @returns
+            A list of legal actions in the form of unit vectors.
         """
         worker = state[0]
-        #if (up, down, left, right) in state.walls:
         # Define the possible directions
         directions = [ (0, -1), (0, 1), (-1, 0), (1, 0)]  # up, down, left, right Note that up and down are backwards as the 0 in y is the top of the warehouse
 
-        # Initialize the result array with zeros
+        # Initialize the result array with all actions
         actions = [(0, -1), (0, 1), (-1, 0), (1, 0)]
 
         # Loop through each direction
-        for i, direction in enumerate(directions):
+        for direction in directions:
             # Calculate the adjacent position based on the direction
             adjacent_pos = [worker[0] + direction[0], worker[1] + direction[1]]
             
             #Cool Hip Adjacent Square Checker, felt cute might turn into function later.
             if tuple(adjacent_pos) in self.static.walls: # Adjacent_pos made into tuple so in keyword can be used
-                # If so, set the corresponding element in the result array to 0
-                actions.remove(direction)
-            elif tuple(adjacent_pos) in state[1]: #Checks if adjacent square has a box
+                actions.remove(direction)  # If so, remove the corresponding action in actions.
+            elif tuple(adjacent_pos) in state[1]: # Checks if adjacent square has a box
                 next_adjacent = tuple([adjacent_pos[0] + direction[0], adjacent_pos[1] + direction[1]])
                 if (next_adjacent in state[1]) or (next_adjacent in self.static.walls) or (next_adjacent in self.taboo_coords): #If adjacent square has box then check if next adjacent is a box or wall or a taboo cell: #If adjacent square has box then check if next adjacent is a box or wall
                     actions.remove(direction) #If next square a box or wall return 0
         return actions
 
-    # Returns a new warehouse object of the resulting state after action. Doesn't need to check for legalities as actions() does this.
     def result(self, state, action):
-        next_state = self.static.copy(state[0], list(state[1]), list(state[2]))
-        next_state.worker = (next_state.worker[0] + action[0], next_state.worker[1] + action[1])
-        if next_state.worker in state[1]:
+        """
+        Takes in a tuple representing the worker and boxes positions along with their weights
+        Also takes a action in the format of (x, y).
+        Returns an iterated state tuple after which the action has been applied.
+        @params
+            - state: A tuple representing the positions of the worker, boxes and their weights.
+            - action: A unit vector representing the x and y coordinates of an action.
+        @returns
+            A resulting state tuple representing the new positions of the worker, boxes and their weights.
+        """
+        next_state = self.static.copy(state[0], list(state[1]), list(state[2])) # Initialises a new state with the old state.
+        next_state.worker = (next_state.worker[0] + action[0], next_state.worker[1] + action[1]) # Moves the worker.
+        if next_state.worker in state[1]: # Checks to see if the worker is in a box.
             idx = state[1].index(next_state.worker)
-            next_state.boxes[idx] = tuple([next_state.boxes[idx][0] + action[0], next_state.boxes[idx][1] + action[1]])
-        next_state = self.static.copy(next_state.worker, tuple(next_state.boxes), tuple(next_state.weights))
-        return (next_state.worker, tuple(next_state.boxes), tuple(next_state.weights))
+            next_state.boxes[idx] = tuple([next_state.boxes[idx][0] + action[0], next_state.boxes[idx][1] + action[1]]) # If so, move the box in the same direction.
+        return (next_state.worker, tuple(next_state.boxes), tuple(next_state.weights)) # Returns new state.
 
     def print_solution(self, goal_node):
+        """ Takes in a goal node and prints it to console."""
         print(goal_node)
 
     def goal_test(self, state):
+        """
+        Takes in a state and returns true if its the goal state and false if its not.
+        @param
+            A tuple representing the positions of the worker, boxes and their weights.
+        @returns
+            True or False depending if the state = the goal state.
+        """
+        # Turns the state into a warehouse object then to a string with the worker removed.
         state_str = self.static.copy(state[0],state[1],state[2]).__str__().replace("@", " ")
-        # state_str = state_str.replace("@", " ")
-        if state_str == self.goal_state:
-            #print("True")
+        if state_str == self.goal_state: # Checks with the goal state.
             return True
         else:
-            #print("False")
             return False
         
     def path_cost(self, c, state1, action, state2):
+        """
+        Takes a cost, previous state and current state.
+        Returns the combined path cost between the two states aswell as all previous states, c.
+        action is a parameter but is not required for this problem.
+        @params
+            - c: An integar of the cost to go from the start to state1
+            - state1: A tuple representing the positions of the worker, boxes and their weights in the previous state.
+            - action: NOT USED, The action which transfers the state from state1 to state2.
+            - state2: A tuple representing the positions of the worker, boxes and their weights in the next state.
+        @returns
+            
+        """
         weight = 0
         for i, box_pre in enumerate(state1[1]):
-            if box_pre not in state2[1]:
+            if box_pre not in state2[1]: # Checks which box with which weight has moved.
                 weight = state1[2][i]
         return c + 1 + weight
     
