@@ -245,8 +245,8 @@ def taboo_cells(warehouse):
     # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
 
     sorted(reachable_corners , key=lambda k: [k[1], k[0]])
-    print("CORNERS:")
-    print(reachable_corners)
+    # print("CORNERS:")
+    # print(reachable_corners)
 
     # vertically co linear check
     corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
@@ -284,7 +284,7 @@ def taboo_cells(warehouse):
     for corner in corner_set:
         for possible_pair in corner_set:
             distance_between = math.dist(corner, possible_pair)
-            print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
+            # print("Checking "+str(corner)+" against "+str(possible_pair)+ " distance = "+str(distance_between))
             if ((corner[1] == possible_pair[1]) and (distance_between>1)):
                 # this possible pair is co linear with the corner (x dimension) and has space between the points
                 # check if there is a wall segment adjacent to the segment between the points
@@ -305,8 +305,8 @@ def taboo_cells(warehouse):
                 for seg_coord in segment:
                     bottom_seg.append((seg_coord[0], seg_coord[1]+1))
                 
-                print(str(corner) + ' is co linear with ' + str(possible_pair))
-                print(segment)
+                # print(str(corner) + ' is co linear with ' + str(possible_pair))
+                # print(segment)
 
                 if ((all(coord in warehouse.walls for coord in top_seg) or all(coord in warehouse.walls for coord in bottom_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
                     if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
@@ -509,31 +509,32 @@ def check_elem_action_seq(warehouse, action_seq):
                string returned by the method  Warehouse.__str__()
     '''
     problem = SokobanPuzzle(warehouse)
+    state = problem.initial
     for action in action_seq:
-        legal_actions = problem.actions(problem.initial)
+        legal_actions = problem.actions(state)
         match action:
             case "Up": # UP
-                if (0,-1) in legal_actions:
+                if (0,-1) not in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = problem.result((0,-1))
+                    state = problem.result(state, (0,-1))
             case "Down": # DOWN
-                if (0,1) in legal_actions:
+                if (0,1) not in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = problem.result((0,1))
+                    state = problem.result(state, (0,1))
             case "Left": # LEFT
-                if (-1,0) in legal_actions:
+                if (-1,0) not in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = problem.result((-1,0))
+                    state = problem.result(state, (-1,0))
             case "Right": # RIGHT
-                if (1,0) in legal_actions:
+                if (1,0) not in legal_actions:
                     return "Impossible"
                 else:
-                    warehouse = problem.result((1,0))
+                    state = problem.result(state, (1,0))
     
-    return warehouse.__str__()
+    return problem.static.copy(state[0],state[1],state[2]).__str__()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
