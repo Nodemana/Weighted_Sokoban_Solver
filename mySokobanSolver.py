@@ -580,7 +580,7 @@ def solve_weighted_sokoban(warehouse):
                 s.append("Right")
             case _:
                 print("Move failed")
-    check_elem_action_seq(s, problem.static)
+    check_elem_action_seq(warehouse, s)
     return [s, c]
     
 
