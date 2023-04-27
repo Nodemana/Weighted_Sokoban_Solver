@@ -54,12 +54,27 @@ def is_corner(walls, x, y):
     Return a boolean after checking if the given x,y coord is classified as a corner in the given warehouse.
     A square is a corner if it has at least one wall adjacent to it vertically and at least one wall adjacent to it horizontally.
     Exceptions are squares with walls on all sides.
+
+    @param walls:
+        A tuple of coordinates representing the positions of a given warehouse's walls.
+    
+    @param x:
+        The horizontal coordinate of the square being checked.
+    
+    @param y:
+        The vertical coordinate of the square being checked.
+    
+    @return:
+        Boolean
     
     '''
+    # set the horizonally adjacent coordinates
     x_adj = [(x-1, y), (x+1, y)]
+    # set the vertically adjacent coordinates
     y_adj = [(x, y+1), (x, y-1)]
-    # check the square in question
+    # if either of the horizontally adjacent squares are walls
     if any(coord in x_adj for coord in walls):
+        # if either of the vertically adjacent squares are walls
         if any(coord in y_adj for coord in walls):
             # is the square in question surrounded
             if all(coord in walls for coord in x_adj) and all(coord in walls for coord in y_adj):
@@ -69,10 +84,10 @@ def is_corner(walls, x, y):
                 # square is not surrounded and passes corner test
                 return True
         else:
-            # not both
+            # square does not have vertically adjacent walls
             return False
     else:
-        # not both
+        # square does not have horizontally adjacent walls
         return False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -167,11 +182,14 @@ def taboo_cells(warehouse):
     # we know the coords of the walls in self.walls
     # index in 2d array maps correctly but reversed array[y][x]
 
+    # create a space to store the set of reachable corners
     reachable_corners = []
 
+    # de-indent the y index tracker so it is at 0 for first row
     y_index = -1
     for row in warehouse_array:
         y_index += 1
+        # de-indent the x index tracker so it is at 0 for first column
         x_index = -1
         for square in row:
             x_index += 1
@@ -240,43 +258,57 @@ def taboo_cells(warehouse):
     # a true pair will have nothing but space between them on the segment and any pair with no segment between should be considered
     # once a pair is established
     # check if the line between them, adjacent segment, exists on either side
-    # if the segment exists, all squares between the corners that are not targets are taboo
+    # if the segment exists, all squares between the corners that are not targets are taboo if there is no target in the segment
     # add them to the taboo cells list and add the reachable corners that are not targets to the list as well
     # replace all elements with the indicies in the taboo list with 'X' and remove all other elements
 
-    sorted(reachable_corners , key=lambda k: [k[1], k[0]])
+
+    # sorted(reachable_corners , key=lambda k: [k[1], k[0]])
     # print("CORNERS:")
     # print(reachable_corners)
 
     # vertically co linear check
+    # sort the set of reachable corners so it considers them top to bottom left to right
     corner_set = sorted(reachable_corners , key=lambda k: [k[1], k[0]])
     for corner in corner_set:
+        # check the corner in question against the rest in the set for a match
         for possible_pair in corner_set:
             distance_between = math.dist(corner, possible_pair)
             if ((corner[0] == possible_pair[0]) and (distance_between>1)):
                 # this possible pair is co linear with the corner (y dimension) and has space between the points
                 # check if there is a wall segment adjacent to the segment between the points
+                # a set for the segement of coords between the corners
                 segment = []
+                # a set for the segement of coords adjacent to the left of the segment betweent the corners
                 left_seg = []
+                # a set for the segement of coords adjacent to the right of the segment betweent the corners
                 right_seg = []
 
+                # check which corner comes frist (left to right)
                 if corner[1]<possible_pair[1]:
+                    # add all the segment coords between the corners to the segment set
                     for delta in range(1, int(distance_between)):
                         segment.append((corner[0], corner[1]+delta))
                 else:
+                    # add all the segment coords between the corners to the segment set
                     for delta in range(1, int(distance_between)):
                         segment.append((possible_pair[0], possible_pair[1]+delta))
 
+                # poulate the adjacent segment sets
                 for seg_coord in segment:
                     left_seg.append((seg_coord[0]-1, seg_coord[1]))
 
                 for seg_coord in segment:
                     right_seg.append((seg_coord[0]+1, seg_coord[1]))
             
+                # check that the entire of either of the adjacent segments is in the set of walls and none of the segment coords are walls themselves (all empty spaces) and that none of the segment coords are targets
                 if ((all(coord in warehouse.walls for coord in left_seg) or all(coord in warehouse.walls for coord in right_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
+                    # check that none of the corners are targets either
                     if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
+                        # change each space in the segment to be taboo
                         for seg_coord in segment:
                             warehouse_array[seg_coord[1]][seg_coord[0]] = taboo_char
+        # remove the corner that was examined from the set so the same pair is not made twice
         corner_set.remove(corner)
 
     # horizontal colinear check
@@ -288,17 +320,24 @@ def taboo_cells(warehouse):
             if ((corner[1] == possible_pair[1]) and (distance_between>1)):
                 # this possible pair is co linear with the corner (x dimension) and has space between the points
                 # check if there is a wall segment adjacent to the segment between the points
+                # a set for the segement of coords between the corners
                 segment = []
+                # a set for the segement of coords adjacent above the segment betweent the corners
                 top_seg = []
+                # a set for the segement of coords adjacent below the segment betweent the corners
                 bottom_seg = []
 
+                # check which corner comes frist (top to bottom)
                 if corner[0]<possible_pair[0]:
+                    # add all the segment coords between the corners to the segment set
                     for delta in range(1, int(distance_between)):
                         segment.append((corner[0]+delta, corner[1]))
                 else:
+                    # add all the segment coords between the corners to the segment set
                     for delta in range(1, int(distance_between)):
                         segment.append((possible_pair[0]+delta, possible_pair[1]))
 
+                # poulate the adjacent segment sets
                 for seg_coord in segment:
                     top_seg.append((seg_coord[0], seg_coord[1]-1))
 
@@ -308,10 +347,14 @@ def taboo_cells(warehouse):
                 # print(str(corner) + ' is co linear with ' + str(possible_pair))
                 # print(segment)
 
+                # check that the entire of either of the adjacent segments is in the set of walls and none of the segment coords are walls themselves (all empty spaces) and that none of the segment coords are targets
                 if ((all(coord in warehouse.walls for coord in top_seg) or all(coord in warehouse.walls for coord in bottom_seg)) and not (any(coord in warehouse.walls for coord in segment) or any(coord in warehouse.targets for coord in segment))):
+                    # check that none of the corners are targets either
                     if (not any(coord in warehouse.targets for coord in segment)) and ((corner[0], corner[1]) not in warehouse.targets) and ((possible_pair[0], possible_pair[1]) not in warehouse.targets):
+                        # change each space in the segment to be taboo
                         for seg_coord in segment:
                             warehouse_array[seg_coord[1]][seg_coord[0]] = taboo_char
+        # remove the corner that was examined from the set so the same pair is not made twice
         corner_set.remove(corner)
 
     # condense array back into string
