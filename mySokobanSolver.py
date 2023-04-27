@@ -471,8 +471,16 @@ class SokobanPuzzle(search.Problem):
         return c + 1 + weight
     
     def h(self, n):
+        """
+        Takes a node.
+        Returns the hueristic value which is calculated using the distance of all boxes to a target and all boxes to a worker.
+        @params
+            - n: A node of the problem, containing a state, parent, actions, a path_cost, etc.
+        @return
+            A value that represents, the minimum distance from worker to nearest box multiplied by weight of that box, plus the summated weighted distance of every box to it's nearest target.
+        """
         min_player_to_box_dist = float('inf')
-        # Calculate the weighted distance from the player to the nearest box
+        # Calculate the weighted distance from the player to the nearest box and if the distance is lower than the current lowest value, replace it
         for box_pos, box_weight in zip(n.state[1], n.state[2]):
             if box_weight == 0:
                 player_to_box_dist = dist(n.state[0], box_pos)
@@ -481,7 +489,7 @@ class SokobanPuzzle(search.Problem):
             if player_to_box_dist < min_player_to_box_dist:
                 min_player_to_box_dist = player_to_box_dist
 
-        # Calculate the weighted distance from each box to the nearest target
+        # Calculate the weighted distance from each box to the nearest target and add the smallest distance for each box into an array to be summated at the return
         box_to_target_dists = []
         for box_pos, box_weight in zip(n.state[1], n.state[2]):
             min_box_to_target_dist = float('inf')
@@ -599,8 +607,16 @@ def solve_weighted_sokoban(warehouse):
 
 ## Helper functions
 def dist(coor1, coor2):
-    # return abs(coor2[0] - coor1[0])  + (coor2[1] - coor1[1]) # Manhattan
-    return np.sqrt(((coor2[0] - coor1[0]) ** 2) +((coor2[1] - coor1[1]) ** 2)) # Euclidean
+    """
+        Takes a 2 coordinates given in the form of (x1, y1) & (x2, y2).
+        Returns the distance of coordinate 1 and coordinate 2 using a Euclidean calculation
+        @params
+            - coor1: coordinate 1 (x1, y1)
+            - coor2: coordinate 2 (x2, y2)
+        @return
+            The distance between coor1 & coor2 
+        """
+    return np.sqrt(((coor2[0] - coor1[0]) ** 2) +((coor2[1] - coor1[1]) ** 2)) # Euclidean Distance
 
 from sokoban import Warehouse
 if __name__ == "__main__":
